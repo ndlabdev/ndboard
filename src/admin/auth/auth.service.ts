@@ -89,3 +89,14 @@ export const authLogin = new Elysia()
             body: 'login'
         }
     )
+
+export const authRefreshToken = new Elysia()
+    .use(AuthModels)
+    .use(jwtAdminPlugin)
+    .post(
+        '/login',
+        async ({ body, status, jwtAccessToken }) => { },
+        {
+            body: 'refreshToken'
+        }
+    )

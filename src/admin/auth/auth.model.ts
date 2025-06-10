@@ -2,8 +2,9 @@
 import { Elysia } from 'elysia'
 
 // ** Types Imports
-import { loginType } from './auth.type'
+import { loginType, refreshTokenType } from './auth.type'
 
 export const AuthModels = new Elysia().model({
-    login: loginType
+    login: loginType,
+    refreshToken: refreshTokenType
 })
