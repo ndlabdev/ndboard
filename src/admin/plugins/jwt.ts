@@ -14,7 +14,8 @@ const jwtAdminPlugin = (app: Elysia) =>
             jwt({
                 name: JWT.ACCESS_TOKEN_NAME,
                 schema: t.Object({
-                    sub: t.String()
+                    userId: t.String(),
+                    role: t.String()
                 }),
                 exp: '1h',
                 secret: Bun.env.JWT_ACCESS_SECRET!
@@ -24,7 +25,8 @@ const jwtAdminPlugin = (app: Elysia) =>
             jwt({
                 name: JWT.REFRESH_TOKEN_NAME,
                 schema: t.Object({
-                    sub: t.String()
+                    sub: t.String(),
+                    role: t.String()
                 }),
                 exp: '7 days',
                 secret: Bun.env.JWT_REFRESH_SECRET!
