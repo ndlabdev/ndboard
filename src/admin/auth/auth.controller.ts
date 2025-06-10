@@ -1,17 +1,10 @@
 // ** Elysia Imports
 import { Elysia } from 'elysia'
 
-// ** Models Imports
-import { AuthModels } from './auth.model'
+// ** Service Imports
+import {
+    authLogin
+} from './auth.service'
 
-export const authLogin = new Elysia()
-    .use(AuthModels)
-    .post(
-        '/login',
-        async ({ }) => {
-
-        },
-        {
-            body: 'login'
-        }
-    )
+export const authController = new Elysia({ prefix: '/auth' })
+    .use(authLogin)

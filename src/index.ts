@@ -6,7 +6,7 @@ import { Elysia } from 'elysia'
 // ** Router Imports
 import { admin } from './admin'
 
-const app = new Elysia({ prefix: '/api', normalize: true })
+const app = new Elysia({ normalize: true })
     .use(swagger())
     .use(
         cors({
