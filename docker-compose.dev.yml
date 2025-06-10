@@ -9,8 +9,8 @@ services:
             target: development
             dockerfile: ./Dockerfile.dev
         ports:
-            - ${PORT}:${PORT}
-            - ${PRISMA_PORT}:${PRISMA_PORT}
+            - "${PORT:-3333}:3333"
+            - "${PRISMA_PORT:-5555}:5555"
         depends_on:
             - db
             - redis
@@ -32,7 +32,7 @@ services:
             POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
             POSTGRES_DB: ${POSTGRES_DB}
         ports:
-            - '${POSTGRES_PORT}:${POSTGRES_PORT}'
+            - "${POSTGRES_PORT:-5432}:5432"
         volumes:
             - pgdata:/var/lib/postgresql/data
         networks:
@@ -42,14 +42,14 @@ services:
         image: redis:6-alpine
         container_name: ndboard-redis
         ports:
-            - ${REDIS_PORT}:${REDIS_PORT}
+            - "${REDIS_PORT:-6379}:6379"
         networks:
             - ndboard_network
 
     redis_insight:
         image: 'redislabs/redisinsight'
         ports:
-            - '${REDIS_INSIGHT_PORT:-5540}:${REDIS_INSIGHT_PORT:-5540}'
+            - "${REDIS_INSIGHT_PORT:-5540}:5540"
         networks:
             - ndboard_network
         depends_on:

@@ -6,7 +6,7 @@ import {
 } from 'elysia'
 
 // ** Types Definition
-export const signInType = t.Object({
+export const loginType = t.Object({
     email: t.String({
         minLength: 1,
         format: 'email'
@@ -18,7 +18,7 @@ export const signInType = t.Object({
 })
 
 // ** Types
-export type IAuthSignInDTO = Static<typeof signInType>
+export type IAuthLoginDTO = Static<typeof loginType>
 
 export type IAuthJwt = {
     readonly sign: (

@@ -4,14 +4,14 @@ import { Elysia } from 'elysia'
 // ** Models Imports
 import { AuthModels } from './auth.model'
 
-export const authSignIn = new Elysia()
+export const authLogin = new Elysia()
     .use(AuthModels)
     .post(
-        '/sign-in',
+        '/login',
         async ({ }) => {
 
         },
         {
-            body: 'signIn'
+            body: 'login'
         }
     )
