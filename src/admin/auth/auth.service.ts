@@ -44,7 +44,7 @@ export const authLogin = new Elysia()
                 })
             }
 
-            const passwordMatches = await Bun.password.verify(body.password, user.password!, HASH_PASSWORD.ALGORITHM)
+            const passwordMatches = await Bun.password.verify(password, user.password!, HASH_PASSWORD.ALGORITHM)
 
             if (!passwordMatches) {
                 return status('Unauthorized', {
