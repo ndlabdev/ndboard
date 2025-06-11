@@ -2,7 +2,8 @@
   "name": "ndboard",
   "version": "1.0.50",
   "prisma": {
-    "schema": "./prisma"
+    "schema": "./prisma",
+    "seed": "bun prisma/seed.ts"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
