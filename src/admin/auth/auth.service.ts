@@ -117,7 +117,7 @@ export const authLogin = new Elysia()
                 })
             }
 
-            const accessToken = jwtAccessToken.sign({
+            const accessToken = await jwtAccessToken.sign({
                 userId: user.id,
                 role: user.role
             })
@@ -164,6 +164,8 @@ export const authLogin = new Elysia()
                 httpOnly: true,
                 sameSite: 'none'
             })
+
+            console.log(accessToken)
 
             return status(200, {
                 accessToken,
