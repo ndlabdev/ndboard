@@ -35,7 +35,7 @@ services:
         env_file:
             - ./apps/frontend/.env
         volumes:
-            - ./apps/frontend/src:/app/src
+            - ./apps/frontend/app:/app/app
             - /app/node_modules
         networks:
             - ndboard_network
