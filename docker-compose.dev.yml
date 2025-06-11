@@ -1,13 +1,13 @@
 version: '3.9'
 
 services:
-    app:
-        container_name: ndboard-app
+    backend:
+        container_name: ndboard-backend
         restart: unless-stopped
         build:
-            context: .
+            context: ./apps/backend
             target: development
-            dockerfile: ./Dockerfile.dev
+            dockerfile: Dockerfile.dev
         ports:
             - "${PORT:-3333}:3333"
             - "${PRISMA_PORT:-5555}:5555"
@@ -16,9 +16,26 @@ services:
             - redis
             - redis_insight
         env_file:
-            - .env
+            - ./apps/backend/.env
         volumes:
-            - ./src:/app/src
+            - ./apps/backend/src:/app/src
+            - /app/node_modules
+        networks:
+            - ndboard_network
+
+    frontend:
+        container_name: ndboard-frontend
+        restart: unless-stopped
+        build:
+            context: ./apps/frontend
+            target: development
+            dockerfile: Dockerfile.dev
+        ports:
+            - "${PORT:-3000}:3000"
+        env_file:
+            - ./apps/frontend/.env
+        volumes:
+            - ./apps/frontend/src:/app/src
             - /app/node_modules
         networks:
             - ndboard_network
