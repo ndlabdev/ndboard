@@ -79,7 +79,7 @@ export const authLogin = new Elysia()
                 maxAge: JWT.EXPIRE_AT,
                 secure: Bun.env.NODE_ENV === 'production',
                 httpOnly: true,
-                sameSite: 'lax'
+                sameSite: 'none'
             })
 
             return status(200, {
