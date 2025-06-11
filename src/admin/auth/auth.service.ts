@@ -95,7 +95,50 @@ export const authRefreshToken = new Elysia()
     .use(jwtAdminPlugin)
     .post(
         '/login',
-        async ({ body, status, jwtAccessToken }) => { },
+        async ({ body, status, jwtAccessToken }) => {
+            const { refreshToken } = body
+
+            if (!refreshToken) {
+                return status('Bad Request', {
+                    code: ERROR_CODES.TOKEN_MISSING,
+                    message: 'Missing refresh token'
+                })
+            }
+
+            const tokenDoc = await prisma.refreshToken.findUnique({
+                where: { token: refreshToken },
+                include: { user: true }
+            })
+
+            if (!tokenDoc || tokenDoc.expiredAt < new Date()) {
+                return status('Unauthorized', {
+                    code: ERROR_CODES.TOKEN_INVALID,
+                    message: 'Refresh token is invalid or expired'
+                })
+            }
+
+            const user = tokenDoc.user
+
+            if (
+                !user.isActive ||
+                user.isBanned ||
+                (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPERADMIN)
+            ) {
+                return status('Unauthorized', {
+                    code: ERROR_CODES.ACCOUNT_INVALID,
+                    message: 'User is not valid'
+                })
+            }
+
+            const accessToken = jwtAccessToken.sign({
+                userId: user.id,
+                role: user.role
+            })
+
+            return status(200, {
+                accessToken
+            })
+        },
         {
             body: 'refreshToken'
         }
