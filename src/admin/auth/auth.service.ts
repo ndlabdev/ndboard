@@ -23,7 +23,7 @@ export const authLogin = new Elysia()
     .use(jwtAdminPlugin)
     .post(
         '/login',
-        async ({ body, status, jwtAccessToken }) => {
+        async ({ body, status, jwtAccessToken, cookie }) => {
             const { email, password } = body
 
             const user = await prisma.user.findUnique({
@@ -74,9 +74,16 @@ export const authLogin = new Elysia()
                 data: { lastLoginAt: new Date() }
             })
 
+            cookie.refreshTokenAdmin.set({
+                value: refreshToken,
+                maxAge: JWT.EXPIRE_AT,
+                secure: Bun.env.NODE_ENV === 'production',
+                httpOnly: true,
+                sameSite: 'lax'
+            })
+
             return status(200, {
                 accessToken,
-                refreshToken,
                 user: {
                     id: user.id,
                     email: user.email,
@@ -94,7 +101,7 @@ export const authRefreshToken = new Elysia()
     .use(AuthModels)
     .use(jwtAdminPlugin)
     .post(
-        '/login',
+        '/refresh-token',
         async ({ body, status, jwtAccessToken }) => {
             const { refreshToken } = body
 
@@ -149,8 +156,8 @@ export const authLogout = new Elysia()
     .use(AuthModels)
     .use(jwtAdminPlugin)
     .post(
-        '/login',
-        async ({ body, status }) => {
+        '/logout',
+        async ({ body, status, cookie }) => {
             const { refreshToken } = body
 
             if (!refreshToken) {
@@ -165,6 +172,8 @@ export const authLogout = new Elysia()
                     token: refreshToken
                 }
             })
+
+            cookie.refreshTokenAdmin.remove()
 
             return status(200)
         },

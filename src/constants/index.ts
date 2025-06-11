@@ -1,7 +1,7 @@
 import { Password } from 'bun'
 
 export const HASH_PASSWORD = {
-    ALGORITHM: 'argon2id' as Password.AlgorithmLabel
+    ALGORITHM: 'bcrypt' as Password.AlgorithmLabel
 }
 
 export const JWT = {
