@@ -8,7 +8,7 @@ WORKDIR /app
 
 RUN apt-get update -y && apt-get install -y openssl
 
-COPY package*.json bun.lock ./
+COPY package*.json ./
 
 COPY prisma ./prisma/
 
