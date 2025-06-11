@@ -165,8 +165,6 @@ export const authLogin = new Elysia()
                 sameSite: 'none'
             })
 
-            console.log(accessToken)
-
             return status(200, {
                 accessToken,
                 user: {
