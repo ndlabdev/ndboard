@@ -143,3 +143,32 @@ export const authRefreshToken = new Elysia()
             body: 'refreshToken'
         }
     )
+
+
+export const authLogout = new Elysia()
+    .use(AuthModels)
+    .use(jwtAdminPlugin)
+    .post(
+        '/login',
+        async ({ body, status }) => {
+            const { refreshToken } = body
+
+            if (!refreshToken) {
+                return status('Bad Request', {
+                    code: ERROR_CODES.TOKEN_MISSING,
+                    message: 'Missing refresh token'
+                })
+            }
+
+            await prisma.refreshToken.deleteMany({
+                where: {
+                    token: refreshToken
+                }
+            })
+
+            return status(200)
+        },
+        {
+            body: 'logout'
+        }
+    )
