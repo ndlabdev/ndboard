@@ -27,5 +27,10 @@ export const ADMIN_TARGET_TYPES = {
     BOARD: 'board'
 } as const
 
+export const PAGE = {
+    CURRENT: 1,
+    SIZE: 10
+}
+
 export type AdminTargetType = typeof ADMIN_TARGET_TYPES[keyof typeof ADMIN_TARGET_TYPES]
 export type AdminAction = typeof ADMIN_ACTIONS[keyof typeof ADMIN_ACTIONS]

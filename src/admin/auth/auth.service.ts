@@ -13,13 +13,13 @@ import { ADMIN_ACTIONS, ADMIN_TARGET_TYPES, HASH_PASSWORD, JWT } from '@constant
 import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Models Imports
-import { AuthModels } from './auth.model'
+import { authModels } from './auth.model'
 
 // ** Plugins Imports
 import { jwtAdminPlugin } from '@src/admin/plugins/jwt'
 
 export const authLogin = new Elysia()
-    .use(AuthModels)
+    .use(authModels)
     .use(jwtAdminPlugin)
     .post(
         '/login',
@@ -181,7 +181,7 @@ export const authLogin = new Elysia()
     )
 
 export const authRefreshToken = new Elysia()
-    .use(AuthModels)
+    .use(authModels)
     .use(jwtAdminPlugin)
     .post(
         '/refresh-token',
@@ -236,7 +236,7 @@ export const authRefreshToken = new Elysia()
 
 
 export const authLogout = new Elysia()
-    .use(AuthModels)
+    .use(authModels)
     .use(jwtAdminPlugin)
     .post(
         '/logout',

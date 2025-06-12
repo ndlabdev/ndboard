@@ -39,9 +39,6 @@
       "@utils/*": [
         "src/utils/*"
       ],
-      "@types/*": [
-        "src/types/*"
-      ],
       "@libs/*": [
         "src/libs/*"
       ],
