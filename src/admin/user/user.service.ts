@@ -85,3 +85,68 @@ export const userTableList = new Elysia()
             query: 'userSearch'
         }
     )
+
+export const userRetrieve = new Elysia()
+    .get(
+        '/:id',
+        async ({ params, status }) => {
+            try {
+                const user = await prisma.user.findUnique({
+                    where: { id: params.id },
+                    select: {
+                        id: true,
+                        email: true,
+                        name: true,
+                        avatar: true,
+                        role: true,
+                        isActive: true,
+                        isBanned: true,
+                        bannedAt: true,
+                        createdAt: true,
+                        updatedAt: true,
+                    }
+                })
+
+                if (!user) {
+                    return status('Not Found', 'User not found')
+                }
+
+                return {
+                    data: user
+                }
+            } catch (error) {
+                return status('Internal Server Error', error)
+            }
+        }
+    )
+
+export const userUpdate = new Elysia()
+    .use(userModels)
+    .patch(
+        '/:id',
+        async ({ params, body, status }) => {
+            try {
+                return await prisma.user.update({
+                    where: { id: params.id },
+                    data: body,
+                    select: {
+                        id: true,
+                        email: true,
+                        name: true,
+                        avatar: true,
+                        role: true,
+                        isActive: true,
+                        isBanned: true,
+                        bannedAt: true,
+                        createdAt: true,
+                        updatedAt: true,
+                    }
+                })
+            } catch (error) {
+                return status('Internal Server Error', error)
+            }
+        },
+        {
+            body: 'userUpdate'
+        }
+    )

@@ -16,3 +16,11 @@ export const userSearchType = t.Object({
     isActive: t.Optional(t.Boolean()),
     isBanned: t.Optional(t.Boolean())
 })
+
+export const userUpdateType = t.Object({
+    name: t.Optional(t.String()),
+    email: t.String({
+        minLength: 1,
+        format: 'email'
+    })
+})
