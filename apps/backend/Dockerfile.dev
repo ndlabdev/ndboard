@@ -4,13 +4,13 @@
 
 FROM oven/bun AS development
 
-WORKDIR /app
+WORKDIR /app/backend
 
 RUN apt-get update -y && apt-get install -y openssl
 
-COPY package*.json ./
+COPY apps/backend/package*.json ./
 
-COPY prisma ./prisma/
+COPY apps/backend/prisma ./prisma/
 
 RUN bun install
 
@@ -18,7 +18,9 @@ RUN bun install @prisma/client
 
 RUN bunx prisma generate
 
-COPY . .
+COPY apps/backend/. ./
+
+COPY tsconfig.json ../tsconfig.json
 
 EXPOSE 3333
 

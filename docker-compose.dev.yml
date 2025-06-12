@@ -5,9 +5,9 @@ services:
         container_name: ndboard-backend
         restart: unless-stopped
         build:
-            context: ./apps/backend
+            context: .
+            dockerfile: apps/backend/Dockerfile.dev
             target: development
-            dockerfile: Dockerfile.dev
         ports:
             - "${PORT:-3333}:3333"
             - "${PRISMA_PORT:-5555}:5555"
@@ -18,8 +18,8 @@ services:
         env_file:
             - ./apps/backend/.env
         volumes:
-            - ./apps/backend/src:/app/src
-            - /app/node_modules
+            - ./apps/backend:/app/backend
+            - /app/backend/node_modules
         networks:
             - ndboard_network
 
@@ -27,16 +27,16 @@ services:
         container_name: ndboard-frontend
         restart: unless-stopped
         build:
-            context: ./apps/frontend
+            context: .
+            dockerfile: apps/frontend/Dockerfile.dev
             target: development
-            dockerfile: Dockerfile.dev
         ports:
             - "${PORT:-3000}:3000"
         env_file:
             - ./apps/frontend/.env
         volumes:
-            - ./apps/frontend/app:/app/app
-            - /app/node_modules
+            - ./apps/frontend:/app/frontend
+            - /app/frontend/node_modules
         networks:
             - ndboard_network
 

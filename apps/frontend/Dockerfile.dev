@@ -4,13 +4,15 @@
 
 FROM oven/bun AS development
 
-WORKDIR /app
+WORKDIR /app/frontend
 
-COPY package*.json ./
+COPY apps/frontend/package*.json ./
 
 RUN bun install
 
-COPY . .
+COPY apps/frontend/. ./
+
+COPY tsconfig.json ../tsconfig.json
 
 EXPOSE 3000
 
