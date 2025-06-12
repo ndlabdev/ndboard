@@ -5,6 +5,7 @@ export const ERROR_CODES = {
     INVALID_PASSWORD: 'INVALID_PASSWORD',
     TOKEN_MISSING: 'TOKEN_MISSING',
     TOKEN_INVALID: 'TOKEN_INVALID',
+    EMAIL_EXISTS: 'EMAIL_EXISTS',
 } as const
 
 export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES]

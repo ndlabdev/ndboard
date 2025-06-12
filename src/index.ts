@@ -5,6 +5,7 @@ import { Elysia } from 'elysia'
 
 // ** Router Imports
 import { admin } from './admin'
+import { users } from './users'
 
 const app = new Elysia({ normalize: true })
     .use(swagger())
@@ -16,6 +17,7 @@ const app = new Elysia({ normalize: true })
         })
     )
     .use(admin)
+    .use(users)
     .get('/', () => 'ndboard - A modern, scalable, and type-safe backend API for Task Manager – powered by ElysiaJS (Bun) and MongoDB.')
     .listen(Bun.env.PORT || 3333)
 
