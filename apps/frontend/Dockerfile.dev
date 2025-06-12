@@ -12,8 +12,6 @@ RUN bun install
 
 COPY apps/frontend/. ./
 
-COPY tsconfig.json ../tsconfig.json
-
 EXPOSE 3000
 
 CMD [ "bun", "dev" ]
