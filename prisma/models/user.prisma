@@ -9,6 +9,7 @@ model User {
     isActive               Boolean      @default(true)
     isBanned               Boolean      @default(false)
     bannedAt               DateTime?
+    banReason              String?
     emailVerificationToken String?
     emailVerifiedAt        DateTime?
     passwordResetToken     String?

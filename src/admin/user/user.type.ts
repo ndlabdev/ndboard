@@ -24,3 +24,8 @@ export const userUpdateType = t.Object({
         format: 'email'
     })
 })
+
+export const userBanType = t.Object({
+    isBanned: t.Boolean(),
+    banReason: t.Optional(t.String())
+})

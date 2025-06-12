@@ -150,3 +150,40 @@ export const userUpdate = new Elysia()
             body: 'userUpdate'
         }
     )
+
+export const userBan = new Elysia()
+    .use(userModels)
+    .patch(
+        '/:id/ban',
+        async ({ params, body, status }) => {
+            const { isBanned, banReason } = body
+
+            try {
+                return await prisma.user.update({
+                    where: { id: params.id },
+                    data: {
+                        isBanned,
+                        banReason: isBanned ? banReason : null,
+                        bannedAt: isBanned ? new Date() : null
+                    },
+                    select: {
+                        id: true,
+                        email: true,
+                        name: true,
+                        avatar: true,
+                        role: true,
+                        isActive: true,
+                        isBanned: true,
+                        bannedAt: true,
+                        createdAt: true,
+                        updatedAt: true,
+                    }
+                })
+            } catch (error) {
+                return status('Internal Server Error', error)
+            }
+        },
+        {
+            body: 'userBan'
+        }
+    )
