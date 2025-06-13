@@ -26,10 +26,20 @@ model User {
     createdAt              DateTime     @default(now())
     updatedAt              DateTime     @updatedAt
 
-    refreshTokens RefreshToken[]
-    permissions   Permission[]
-    adminLogs     AdminLog[]     @relation("AdminLogUser")
-    reports       Report[]       @relation("ReporterReports")
+    refreshTokens   RefreshToken[]
+    permissions     Permission[]
+    adminLogs       AdminLog[]        @relation("AdminLogUser")
+    reports         Report[]          @relation("ReporterReports")
+    board           Board[]
+    boardMember     BoardMember[]
+    invitation      Invitation[]
+    cardAssignee    CardAssignee[]
+    cardWatcher     CardWatcher[]
+    checklistItem   ChecklistItem[]
+    cardComment     CardComment[]
+    commentReaction CommentReaction[]
+    cardAttachment  CardAttachment[]
+    activityLog     ActivityLog[]
 }
 
 enum UserRole {

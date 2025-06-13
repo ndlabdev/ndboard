@@ -1,0 +1,151 @@
+model Card {
+    id          String    @id @default(cuid(2))
+    title       String
+    description String?
+    boardId     String
+    listId      String
+    position    Float
+    dueDate     DateTime?
+    priority    Int?
+    point       Int?
+    archivedAt  DateTime?
+    deletedAt   DateTime?
+    coverImage  String?
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+
+    board Board @relation(fields: [boardId], references: [id])
+    list  List  @relation(fields: [listId], references: [id])
+
+    assignees   CardAssignee[]
+    watchers    CardWatcher[]
+    labels      CardLabel[]
+    comments    CardComment[]
+    attachments CardAttachment[]
+    checklists  Checklist[]
+    activities  ActivityLog[]
+}
+
+model CardAssignee {
+    id         String   @id @default(cuid(2))
+    cardId     String
+    userId     String
+    assignedAt DateTime @default(now())
+    card       Card     @relation(fields: [cardId], references: [id])
+    user       User     @relation(fields: [userId], references: [id])
+}
+
+model CardWatcher {
+    id     String @id @default(cuid(2))
+    cardId String
+    userId String
+    card   Card   @relation(fields: [cardId], references: [id])
+    user   User   @relation(fields: [userId], references: [id])
+}
+
+model Label {
+    id          String      @id @default(cuid(2))
+    boardId     String
+    name        String
+    color       String
+    description String?
+    board       Board       @relation(fields: [boardId], references: [id])
+    cards       CardLabel[]
+}
+
+model CardLabel {
+    id      String @id @default(cuid(2))
+    cardId  String
+    labelId String
+    card    Card   @relation(fields: [cardId], references: [id])
+    label   Label  @relation(fields: [labelId], references: [id])
+}
+
+model Checklist {
+    id       String          @id @default(cuid(2))
+    cardId   String
+    name     String
+    position Int
+    card     Card            @relation(fields: [cardId], references: [id])
+    items    ChecklistItem[]
+}
+
+model ChecklistItem {
+    id          String    @id @default(cuid(2))
+    checklistId String
+    title       String
+    isChecked   Boolean   @default(false)
+    assigneeId  String?
+    checklist   Checklist @relation(fields: [checklistId], references: [id])
+    assignee    User?     @relation(fields: [assigneeId], references: [id])
+}
+
+model CardComment {
+    id        String   @id @default(cuid(2))
+    cardId    String
+    userId    String
+    content   String
+    parentId  String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    card      Card              @relation(fields: [cardId], references: [id])
+    user      User              @relation(fields: [userId], references: [id])
+    parent    CardComment?      @relation("CommentParent", fields: [parentId], references: [id])
+    replies   CardComment[]     @relation("CommentParent")
+    reactions CommentReaction[]
+}
+
+model CommentReaction {
+    id        String      @id @default(cuid(2))
+    commentId String
+    userId    String
+    type      String // 'like', 'love', 'laugh', ...
+    createdAt DateTime    @default(now())
+    comment   CardComment @relation(fields: [commentId], references: [id])
+    user      User        @relation(fields: [userId], references: [id])
+}
+
+// Card Attachment (file)
+model CardAttachment {
+    id        String   @id @default(cuid(2))
+    cardId    String
+    userId    String
+    url       String
+    fileName  String
+    fileSize  Int
+    mimeType  String
+    createdAt DateTime @default(now())
+    card      Card     @relation(fields: [cardId], references: [id])
+    user      User     @relation(fields: [userId], references: [id])
+}
+
+enum ActivityAction {
+    CREATE
+    UPDATE
+    DELETE
+    MOVE
+    ASSIGN
+    COMMENT
+    ATTACH
+    CHECKLIST
+    OTHER
+}
+
+model ActivityLog {
+    id         String         @id @default(cuid(2))
+    boardId    String
+    cardId     String?
+    userId     String?
+    action     ActivityAction
+    targetType String
+    targetId   String
+    before     Json?
+    after      Json?
+    meta       Json?
+    createdAt  DateTime       @default(now())
+
+    board Board @relation(fields: [boardId], references: [id])
+    card  Card? @relation(fields: [cardId], references: [id])
+    user  User? @relation(fields: [userId], references: [id])
+}

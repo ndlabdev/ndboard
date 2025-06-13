@@ -1,0 +1,64 @@
+enum BoardVisibility {
+    PRIVATE
+    PUBLIC
+    LINK
+}
+
+enum MemberRole {
+    OWNER
+    ADMIN
+    MEMBER
+    OBSERVER
+    GUEST
+}
+
+model Board {
+    id          String          @id @default(cuid(2))
+    name        String
+    description String?
+    ownerId     String
+    visibility  BoardVisibility @default(PRIVATE)
+    archivedAt  DateTime?
+    deletedAt   DateTime?
+    createdAt   DateTime        @default(now())
+    updatedAt   DateTime        @updatedAt
+
+    owner      User          @relation(fields: [ownerId], references: [id])
+    lists      List[]
+    members    BoardMember[]
+    labels     Label[]
+    activities ActivityLog[]
+    invites    Invitation[]
+    Card       Card[]
+}
+
+model BoardMember {
+    id       String     @id @default(cuid(2))
+    boardId  String
+    userId   String
+    role     MemberRole @default(MEMBER)
+    status   String?
+    joinedAt DateTime   @default(now())
+    board    Board      @relation(fields: [boardId], references: [id])
+    user     User       @relation(fields: [userId], references: [id])
+}
+
+enum InvitationStatus {
+    PENDING
+    ACCEPTED
+    DECLINED
+}
+
+model Invitation {
+    id         String           @id @default(cuid(2))
+    boardId    String
+    email      String
+    invitedBy  String
+    role       MemberRole       @default(MEMBER)
+    token      String
+    status     InvitationStatus @default(PENDING)
+    createdAt  DateTime         @default(now())
+    acceptedAt DateTime?
+    board      Board            @relation(fields: [boardId], references: [id])
+    inviter    User             @relation(fields: [invitedBy], references: [id])
+}

@@ -1,0 +1,13 @@
+model List {
+    id         String    @id @default(cuid(2))
+    name       String
+    boardId    String
+    position   Float
+    archivedAt DateTime?
+    deletedAt  DateTime?
+    createdAt  DateTime  @default(now())
+    updatedAt  DateTime  @updatedAt
+
+    board Board  @relation(fields: [boardId], references: [id])
+    cards Card[]
+}
