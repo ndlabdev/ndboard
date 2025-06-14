@@ -3,7 +3,7 @@ import { Elysia } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
-import { MemberRole, Prisma } from '@prisma/client';
+import { BoardVisibility, MemberRole, Prisma } from '@prisma/client';
 
 // ** Constants Imports
 import { PAGE } from '@constants';
@@ -126,7 +126,7 @@ export const boardGetAll = new Elysia()
                             _count: {
                                 select: {
                                     lists: true,
-                                    Card: true
+                                    card: true
                                 }
                             },
                             owner: {
@@ -158,5 +158,352 @@ export const boardGetAll = new Elysia()
         },
         {
             query: 'boardSearch'
+        }
+    )
+
+export const boardRetrieve = new Elysia()
+    .use(authUserPlugin)
+    .get(
+        '/:id',
+        async ({ params, user, status }) => {
+            if (!user?.id) {
+                return status('Unauthorized', {
+                    code: ERROR_CODES.UNAUTHORIZED,
+                    message: 'User must be authenticated'
+                })
+            }
+
+            const board = await prisma.board.findUnique({
+                where: { id: params.id },
+                include: {
+                    lists: {
+                        orderBy: { position: 'asc' },
+                        include: {
+                            _count: {
+                                select: {
+                                    cards: true
+                                }
+                            }
+                        }
+                    },
+                    members: {
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    avatar: true
+                                }
+                            }
+                        }
+                    },
+                    owner: {
+                        select: {
+                            id: true,
+                            name: true,
+                            avatar: true
+                        }
+                    },
+                    labels: true,
+                    _count: {
+                        select: {
+                            lists: true,
+                            card: true,
+                            members: true
+                        }
+                    }
+                }
+            })
+
+            if (!board || board.deletedAt) {
+                return status('Not Found', {
+                    code: ERROR_CODES.NOT_FOUND,
+                    message: 'Board not found'
+                })
+            }
+
+            const isMember = board.members.some(m => m.userId === user.id)
+            if (board.visibility === BoardVisibility.PRIVATE && !isMember) {
+                return status('Forbidden', {
+                    code: ERROR_CODES.FORBIDDEN,
+                    message: 'Access denied to this board'
+                })
+            }
+
+            return {
+                data: {
+                    id: board.id,
+                    name: board.name,
+                    description: board.description,
+                    visibility: board.visibility,
+                    archivedAt: board.archivedAt,
+                    updatedAt: board.updatedAt,
+                    createdAt: board.createdAt,
+                    owner: board.owner,
+                    role: board.members.find(m => m.userId === user.id)?.role ?? MemberRole.GUEST,
+                    members: board.members.map(m => ({
+                        id: m.user.id,
+                        name: m.user.name,
+                        avatar: m.user.avatar,
+                        role: m.role
+                    })),
+                    listCount: board._count.lists,
+                    cardCount: board._count.card,
+                    memberCount: board._count.members,
+                    lists: board.lists.map(list => ({
+                        id: list.id,
+                        name: list.name,
+                        position: list.position,
+                        cardCount: list._count.cards
+                    })),
+                    labels: board.labels
+                }
+            }
+        }
+    )
+
+export const boardUpdate = new Elysia()
+    .use(authUserPlugin)
+    .use(boardModels)
+    .patch(
+        '/:id',
+        async ({ body, params, user, status }) => {
+            if (!user?.id) {
+                return status('Unauthorized', {
+                    code: ERROR_CODES.UNAUTHORIZED,
+                    message: 'User must be authenticated'
+                })
+            }
+
+            const board = await prisma.board.findUnique({
+                where: { id: params.id },
+                include: {
+                    members: {
+                        where: {
+                            userId: user.id
+                        },
+                        select: {
+                            role: true
+                        }
+                    }
+                }
+            })
+
+            if (!board || board.deletedAt) {
+                return status('Not Found', {
+                    code: ERROR_CODES.NOT_FOUND,
+                    message: 'Board not found'
+                })
+            }
+
+            function isAdminOrOwner(role: MemberRole | undefined): boolean {
+                return role === MemberRole.ADMIN || role === MemberRole.OWNER;
+            }
+
+            const role = board.members[0]?.role;
+            if (!isAdminOrOwner(role)) {
+                return status('Forbidden', {
+                    code: ERROR_CODES.FORBIDDEN,
+                    message: 'Not allowed to update board'
+                });
+            }
+
+            const updatedBoard = await prisma.board.update({
+                where: { id: params.id },
+                data: {
+                    ...(body.name ? { name: body.name } : {}),
+                    ...(body.description ? { description: body.description } : {}),
+                    ...(body.visibility ? { visibility: body.visibility } : {})
+                }
+            })
+
+            return {
+                data: updatedBoard
+            }
+        },
+        {
+            body: 'boardUpdate'
+        }
+    )
+
+export const boardArchive = new Elysia()
+    .use(authUserPlugin)
+    .delete(
+        '/:id',
+        async ({ params, user, status }) => {
+            if (!user?.id) {
+                return status('Unauthorized', {
+                    code: ERROR_CODES.UNAUTHORIZED,
+                    message: 'User must be authenticated'
+                })
+            }
+
+            const board = await prisma.board.findUnique({
+                where: { id: params.id },
+                include: {
+                    members: {
+                        where: {
+                            userId: user.id
+                        },
+                        select: {
+                            role: true
+                        }
+                    }
+                }
+            })
+
+            if (!board || board.deletedAt) {
+                return status('Not Found', {
+                    code: ERROR_CODES.NOT_FOUND,
+                    message: 'Board not found'
+                })
+            }
+
+            function isAdminOrOwner(role: MemberRole | undefined): boolean {
+                return role === MemberRole.ADMIN || role === MemberRole.OWNER;
+            }
+
+            const role = board.members[0]?.role;
+            if (!isAdminOrOwner(role)) {
+                return status('Forbidden', {
+                    code: ERROR_CODES.FORBIDDEN,
+                    message: 'Not allowed to update board'
+                });
+            }
+
+            return await prisma.board.update({
+                where: { id: params.id },
+                data: {
+                    deletedAt: new Date()
+                },
+                select: {
+                    id: true
+                }
+            })
+        }
+    )
+
+export const boardLeave = new Elysia()
+    .use(authUserPlugin)
+    .post(
+        '/:id/leave',
+        async ({ params, user, status }) => {
+            if (!user?.id) {
+                return status('Unauthorized', {
+                    code: ERROR_CODES.UNAUTHORIZED,
+                    message: 'User must be authenticated'
+                })
+            }
+
+            const member = await prisma.boardMember.findFirst({
+                where: {
+                    boardId: params.id,
+                    userId: user.id
+                }
+            })
+
+            if (!member) {
+                return status('Forbidden', {
+                    code: ERROR_CODES.FORBIDDEN,
+                    message: 'You are not a member of this board'
+                })
+            }
+
+            if (member.role === MemberRole.OWNER) {
+                return status('Forbidden', {
+                    code: ERROR_CODES.FORBIDDEN,
+                    message: 'Owner cannot leave board'
+                })
+            }
+
+            return await prisma.boardMember.delete({
+                where: {
+                    id: member.id
+                },
+                select: {
+                    id: true
+                }
+            })
+        }
+    )
+
+export const boardInviteMember = new Elysia()
+    .use(authUserPlugin)
+    .use(boardModels)
+    .post(
+        '/:id/invite',
+        async ({ params, body, user, status }) => {
+            if (!user?.id) {
+                return status('Unauthorized', {
+                    code: ERROR_CODES.UNAUTHORIZED,
+                    message: 'User must be authenticated'
+                })
+            }
+
+            const myMember = await prisma.boardMember.findFirst({
+                where: {
+                    boardId: params.id,
+                    userId: user.id
+                }
+            })
+
+            function isAdminOrOwner(role: MemberRole | undefined): boolean {
+                return role === MemberRole.ADMIN || role === MemberRole.OWNER;
+            }
+
+            if (!myMember || !isAdminOrOwner(myMember.role)) {
+                return status('Forbidden', {
+                    code: ERROR_CODES.FORBIDDEN,
+                    message: 'You are not allowed to invite members'
+                });
+            }
+
+            const invitedUser = await prisma.user.findUnique({
+                where: {
+                    id: body.userId
+                }
+            })
+
+            if (!invitedUser) {
+                return status('Not Found', {
+                    code: ERROR_CODES.NOT_FOUND,
+                    message: 'User to invite not found'
+                });
+            }
+
+            const alreadyMember = await prisma.boardMember.findFirst({
+                where: {
+                    boardId: params.id,
+                    userId: body.userId
+                }
+            })
+
+            if (alreadyMember) {
+                return status('Conflict', {
+                    code: ERROR_CODES.ALREADY_MEMBER,
+                    message: 'User is already a member of this board'
+                });
+            }
+
+            const member = await prisma.boardMember.create({
+                data: {
+                    boardId: params.id,
+                    userId: body.userId,
+                    role: body.role
+                }
+            })
+
+            return {
+                data: {
+                    memberId: member.id,
+                    userId: member.userId,
+                    boardId: member.boardId,
+                    role: member.role,
+                    status: 'JOINED'
+                }
+            }
+        },
+        {
+            body: 'boardInviteMember'
         }
     )

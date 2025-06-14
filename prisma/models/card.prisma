@@ -100,13 +100,12 @@ model CommentReaction {
     id        String      @id @default(cuid(2))
     commentId String
     userId    String
-    type      String // 'like', 'love', 'laugh', ...
+    type      String
     createdAt DateTime    @default(now())
     comment   CardComment @relation(fields: [commentId], references: [id])
     user      User        @relation(fields: [userId], references: [id])
 }
 
-// Card Attachment (file)
 model CardAttachment {
     id        String   @id @default(cuid(2))
     cardId    String

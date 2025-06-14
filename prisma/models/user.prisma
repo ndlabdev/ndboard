@@ -32,7 +32,6 @@ model User {
     reports         Report[]          @relation("ReporterReports")
     board           Board[]
     boardMember     BoardMember[]
-    invitation      Invitation[]
     cardAssignee    CardAssignee[]
     cardWatcher     CardWatcher[]
     checklistItem   ChecklistItem[]

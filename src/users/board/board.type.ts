@@ -22,3 +22,12 @@ export const boardSearchType = t.Object({
     archived: t.Optional(t.String()),
     sort: t.Optional(t.String())
 })
+
+export const boardUpdateType = t.Object({
+    ...boardCreateType
+})
+
+export const boardInviteMemberType = t.Object({
+    userId: t.String(),
+    role: t.Enum(MemberRole)
+})
