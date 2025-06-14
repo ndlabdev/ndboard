@@ -5,6 +5,8 @@ import { Elysia } from 'elysia'
 import {
     listCreate,
     listDelete,
+    listReorder,
+    listUnarchive,
     listUpdate
 } from './list.service'
 
@@ -12,3 +14,5 @@ export const listController = new Elysia({ prefix: '/list' })
     .use(listCreate)
     .use(listUpdate)
     .use(listDelete)
+    .use(listUnarchive)
+    .use(listReorder)
