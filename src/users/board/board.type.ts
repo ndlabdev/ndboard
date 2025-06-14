@@ -23,9 +23,7 @@ export const boardSearchType = t.Object({
     sort: t.Optional(t.String())
 })
 
-export const boardUpdateType = t.Object({
-    ...boardCreateType
-})
+export const boardUpdateType = boardCreateType
 
 export const boardInviteMemberType = t.Object({
     userId: t.String(),
