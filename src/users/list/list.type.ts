@@ -7,3 +7,8 @@ export const listCreateType = t.Object({
     name: t.String({ minLength: 1, maxLength: 100 }),
     position: t.Optional(t.Integer({ minimum: 0 }))
 })
+
+export const listUpdateType = t.Object({
+    name: t.String({ minLength: 1, maxLength: 100 }),
+    position: t.Optional(t.Integer({ minimum: 0 }))
+})

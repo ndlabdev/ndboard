@@ -3,9 +3,11 @@ import { Elysia } from 'elysia'
 
 // ** Types Imports
 import {
-    listCreateType
+    listCreateType,
+    listUpdateType
 } from './list.type'
 
 export const listModels = new Elysia().model({
-    listCreate: listCreateType
+    listCreate: listCreateType,
+    listUpdate: listUpdateType
 })
