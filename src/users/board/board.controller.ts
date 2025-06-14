@@ -7,6 +7,7 @@ import {
     boardCreate,
     boardGetAll,
     boardInviteMember,
+    boardKichMember,
     boardLeave,
     boardRetrieve,
     boardUpdate
@@ -17,6 +18,7 @@ export const boardController = new Elysia({ prefix: '/board' })
     .use(boardCreate)
     .use(boardGetAll)
     .use(boardInviteMember)
+    .use(boardKichMember)
     .use(boardLeave)
     .use(boardRetrieve)
     .use(boardUpdate)
