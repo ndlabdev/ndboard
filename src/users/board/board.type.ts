@@ -31,3 +31,8 @@ export const boardInviteMemberType = t.Object({
     userId: t.String(),
     role: t.Enum(MemberRole)
 })
+
+export const boardChangeMemberRoleType = t.Object({
+    role: t.Enum(MemberRole)
+})
+
