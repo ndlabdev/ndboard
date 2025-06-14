@@ -1,9 +1,5 @@
 // ** Elysia Imports
-import { JWTPayloadSpec } from '@elysiajs/jwt'
-import {
-    Static,
-    t
-} from 'elysia'
+import { t } from 'elysia'
 
 // ** Types Definition
 export const loginType = t.Object({
@@ -24,20 +20,3 @@ export const refreshTokenType = t.Object({
 export const logoutType = t.Object({
     refreshToken: t.String({ minLength: 1 })
 })
-
-// ** Types
-export type IAuthLoginDTO = Static<typeof loginType>
-
-export type IAuthJwt = {
-    readonly sign: (
-        morePayload: {
-            sub: string
-        } & JWTPayloadSpec
-    ) => Promise<string>
-    readonly verify: (jwt?: string) => Promise<
-        | false
-        | ({
-            sub: string
-        } & JWTPayloadSpec)
-    >
-}
