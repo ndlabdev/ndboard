@@ -4,12 +4,14 @@ import { Elysia } from 'elysia'
 // ** Service Imports
 import {
     boardArchive,
+    boardChangeMemberRole,
     boardCreate,
     boardGetAll,
     boardInviteMember,
     boardKichMember,
     boardLeave,
     boardRetrieve,
+    boardTransferOwner,
     boardUpdate
 } from './board.service'
 
@@ -22,3 +24,5 @@ export const boardController = new Elysia({ prefix: '/board' })
     .use(boardLeave)
     .use(boardRetrieve)
     .use(boardUpdate)
+    .use(boardChangeMemberRole)
+    .use(boardTransferOwner)

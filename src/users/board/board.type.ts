@@ -36,3 +36,6 @@ export const boardChangeMemberRoleType = t.Object({
     role: t.Enum(MemberRole)
 })
 
+export const boardTransferOwnerType = t.Object({
+    userId: t.String()
+})

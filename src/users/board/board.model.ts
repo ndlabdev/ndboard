@@ -7,6 +7,7 @@ import {
     boardCreateType,
     boardInviteMemberType,
     boardSearchType,
+    boardTransferOwnerType,
     boardUpdateType
 } from './board.type'
 
@@ -15,5 +16,6 @@ export const boardModels = new Elysia().model({
     boardSearch: boardSearchType,
     boardUpdate: boardUpdateType,
     boardInviteMember: boardInviteMemberType,
-    boardChangeMemberRole: boardChangeMemberRoleType
+    boardChangeMemberRole: boardChangeMemberRoleType,
+    boardTransferOwner: boardTransferOwnerType
 })
