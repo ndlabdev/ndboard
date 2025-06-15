@@ -18,7 +18,7 @@ export const listUnarchive = new Elysia()
     .use(authUserPlugin)
     .use(listModels)
     .patch(
-        '/:id/unarchive',
+        '/:listId/unarchive',
         async ({ params, status, user }) => {
             if (!user?.id) {
                 return status('Unauthorized', {
@@ -27,11 +27,11 @@ export const listUnarchive = new Elysia()
                 })
             }
 
-            const { id } = params
+            const { listId } = params
 
             // Find the list, include board and members
             const list = await prisma.list.findUnique({
-                where: { id },
+                where: { id: listId },
                 include: {
                     board: {
                         include: { members: true }
@@ -69,7 +69,7 @@ export const listUnarchive = new Elysia()
             }
 
             return await prisma.list.update({
-                where: { id },
+                where: { id: listId },
                 data: { archivedAt: null }
             })
         }

@@ -18,7 +18,7 @@ export const listDelete = new Elysia()
     .use(authUserPlugin)
     .use(listModels)
     .delete(
-        '/:id',
+        '/:listId',
         async ({ params, status, user }) => {
             if (!user?.id) {
                 return status('Unauthorized', {
@@ -27,10 +27,10 @@ export const listDelete = new Elysia()
                 })
             }
 
-            const { id } = params
+            const { listId } = params
 
             const list = await prisma.list.findUnique({
-                where: { id },
+                where: { id: listId },
                 include: {
                     board: {
                         include: {
@@ -70,7 +70,7 @@ export const listDelete = new Elysia()
             }
 
             return await prisma.list.update({
-                where: { id },
+                where: { id: listId },
                 data: {
                     archivedAt: new Date()
                 }

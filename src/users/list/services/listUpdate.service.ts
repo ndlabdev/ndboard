@@ -18,7 +18,7 @@ export const listUpdate = new Elysia()
     .use(authUserPlugin)
     .use(listModels)
     .patch(
-        '/:id',
+        '/:listId',
         async ({ params, body, status, user }) => {
             if (!user?.id) {
                 return status('Unauthorized', {
@@ -27,11 +27,11 @@ export const listUpdate = new Elysia()
                 })
             }
 
-            const { id } = params
+            const { listId } = params
             const { name, position } = body
 
             const list = await prisma.list.findUnique({
-                where: { id },
+                where: { id: listId },
                 include: {
                     board: {
                         include: {
@@ -79,7 +79,7 @@ export const listUpdate = new Elysia()
                 }
 
                 return await prisma.list.update({
-                    where: { id },
+                    where: { id: listId },
                     data: updateData
                 })
             } catch (error) {
