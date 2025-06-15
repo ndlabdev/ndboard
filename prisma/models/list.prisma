@@ -10,4 +10,6 @@ model List {
 
     board Board  @relation(fields: [boardId], references: [id])
     cards Card[]
+
+    @@index([boardId])
 }

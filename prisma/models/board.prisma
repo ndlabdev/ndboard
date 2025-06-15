@@ -23,14 +23,15 @@ model Board {
     createdAt   DateTime        @default(now())
     updatedAt   DateTime        @updatedAt
 
-    owner      User          @relation(fields: [ownerId], references: [id])
-    lists      List[]
-    members    BoardMember[]
-    labels     Label[]
-    activities ActivityLog[]
-    card       Card[]
+    owner        User          @relation("BoardOwner", fields: [ownerId], references: [id])
+    lists        List[]
+    members      BoardMember[]
+    labels       Label[]
+    customFields CustomField[]
+    activities   Activity[]
 
     @@unique([name, ownerId, archivedAt])
+    @@index([ownerId])
 }
 
 model BoardMember {
@@ -44,4 +45,5 @@ model BoardMember {
     user     User       @relation(fields: [userId], references: [id])
 
     @@unique([boardId, userId])
+    @@index([userId])
 }
