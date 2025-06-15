@@ -14,7 +14,7 @@ import { authUserPlugin } from '@src/users/plugins/auth';
 export const boardArchive = new Elysia()
     .use(authUserPlugin)
     .delete(
-        '/:id',
+        '/:boardId',
         async ({ params, user, status }) => {
             if (!user?.id) {
                 return status('Unauthorized', {
@@ -24,7 +24,7 @@ export const boardArchive = new Elysia()
             }
 
             const board = await prisma.board.findUnique({
-                where: { id: params.id },
+                where: { id: params.boardId },
                 include: {
                     members: {
                         where: {
@@ -57,7 +57,7 @@ export const boardArchive = new Elysia()
             }
 
             return await prisma.board.update({
-                where: { id: params.id },
+                where: { id: params.boardId },
                 data: {
                     deletedAt: new Date()
                 },

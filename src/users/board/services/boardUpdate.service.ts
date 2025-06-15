@@ -18,7 +18,7 @@ export const boardUpdate = new Elysia()
     .use(authUserPlugin)
     .use(boardModels)
     .patch(
-        '/:id',
+        '/:boardId',
         async ({ body, params, user, status }) => {
             if (!user?.id) {
                 return status('Unauthorized', {
@@ -28,7 +28,7 @@ export const boardUpdate = new Elysia()
             }
 
             const board = await prisma.board.findUnique({
-                where: { id: params.id },
+                where: { id: params.boardId },
                 include: {
                     members: {
                         where: {
@@ -61,7 +61,7 @@ export const boardUpdate = new Elysia()
             }
 
             const updatedBoard = await prisma.board.update({
-                where: { id: params.id },
+                where: { id: params.boardId },
                 data: {
                     ...(body.name ? { name: body.name } : {}),
                     ...(body.description ? { description: body.description } : {}),

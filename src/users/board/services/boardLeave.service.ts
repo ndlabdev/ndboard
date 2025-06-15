@@ -14,7 +14,7 @@ import { authUserPlugin } from '@src/users/plugins/auth';
 export const boardLeave = new Elysia()
     .use(authUserPlugin)
     .post(
-        '/:id/leave',
+        '/:boardId/leave',
         async ({ params, user, status }) => {
             if (!user?.id) {
                 return status('Unauthorized', {
@@ -25,7 +25,7 @@ export const boardLeave = new Elysia()
 
             const member = await prisma.boardMember.findFirst({
                 where: {
-                    boardId: params.id,
+                    boardId: params.boardId,
                     userId: user.id
                 }
             })

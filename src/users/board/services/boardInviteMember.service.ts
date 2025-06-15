@@ -18,7 +18,7 @@ export const boardInviteMember = new Elysia()
     .use(authUserPlugin)
     .use(boardModels)
     .post(
-        '/:id/invite',
+        '/:boardId/invite',
         async ({ params, body, user, status }) => {
             if (!user?.id) {
                 return status('Unauthorized', {
@@ -29,7 +29,7 @@ export const boardInviteMember = new Elysia()
 
             const myMember = await prisma.boardMember.findFirst({
                 where: {
-                    boardId: params.id,
+                    boardId: params.boardId,
                     userId: user.id
                 }
             })
@@ -60,7 +60,7 @@ export const boardInviteMember = new Elysia()
 
             const alreadyMember = await prisma.boardMember.findFirst({
                 where: {
-                    boardId: params.id,
+                    boardId: params.boardId,
                     userId: body.userId
                 }
             })
@@ -74,7 +74,7 @@ export const boardInviteMember = new Elysia()
 
             const member = await prisma.boardMember.create({
                 data: {
-                    boardId: params.id,
+                    boardId: params.boardId,
                     userId: body.userId,
                     role: body.role
                 }

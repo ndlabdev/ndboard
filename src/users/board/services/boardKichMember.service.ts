@@ -1,5 +1,5 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia, t } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
@@ -14,7 +14,7 @@ import { authUserPlugin } from '@src/users/plugins/auth';
 export const boardKichMember = new Elysia()
     .use(authUserPlugin)
     .delete(
-        '/board/:boardId/member/:userId',
+        '/:boardId/member/:userId',
         async ({ params, user, status }) => {
             if (!user?.id) {
                 return status('Unauthorized', {
@@ -89,6 +89,12 @@ export const boardKichMember = new Elysia()
                 where: {
                     id: target.id
                 }
+            })
+        },
+        {
+            params: t.Object({
+                boardId: t.String(),
+                userId: t.String()
             })
         }
     )

@@ -14,7 +14,7 @@ import { authUserPlugin } from '@src/users/plugins/auth';
 export const boardRetrieve = new Elysia()
     .use(authUserPlugin)
     .get(
-        '/:id',
+        '/:boardId',
         async ({ params, user, status }) => {
             if (!user?.id) {
                 return status('Unauthorized', {
@@ -24,7 +24,7 @@ export const boardRetrieve = new Elysia()
             }
 
             const board = await prisma.board.findUnique({
-                where: { id: params.id },
+                where: { id: params.boardId },
                 include: {
                     lists: {
                         orderBy: { position: 'asc' },

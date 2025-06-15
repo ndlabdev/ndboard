@@ -18,7 +18,7 @@ export const boardTransferOwner = new Elysia()
     .use(authUserPlugin)
     .use(boardModels)
     .post(
-        '/:id/transfer-owner',
+        '/:boardId/transfer-owner',
         async ({ params, body, user, status }) => {
             if (!user?.id) {
                 return status('Unauthorized', {
@@ -27,7 +27,7 @@ export const boardTransferOwner = new Elysia()
                 })
             }
 
-            const boardId = params.id
+            const boardId = params.boardId
             const targetUserId = body.userId
 
             // Get current owner

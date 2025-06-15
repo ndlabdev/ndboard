@@ -18,7 +18,7 @@ export const boardChangeMemberRole = new Elysia()
     .use(authUserPlugin)
     .use(boardModels)
     .patch(
-        '/board/:boardId/member/:userId/role',
+        '/:boardId/member/:userId/role',
         async ({ params, body, user, status }) => {
             if (!user?.id) {
                 return status('Unauthorized', {
