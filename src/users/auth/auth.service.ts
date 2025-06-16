@@ -178,14 +178,16 @@ export const authSocialGoogle = new Elysia()
         })
 
         return status('OK', {
-            accessToken,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                avatar: user.avatar,
-                role: user.role,
-                provider: user.provider
+            data: {
+                token: accessToken,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    avatar: user.avatar,
+                    role: user.role,
+                    provider: user.provider
+                }
             }
         })
     })
@@ -313,14 +315,16 @@ export const authSocialGithub = new Elysia()
         })
 
         return status('OK', {
-            accessToken,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                avatar: user.avatar,
-                role: user.role,
-                provider: user.provider
+            data: {
+                token: accessToken,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    avatar: user.avatar,
+                    role: user.role,
+                    provider: user.provider
+                }
             }
         })
     })
