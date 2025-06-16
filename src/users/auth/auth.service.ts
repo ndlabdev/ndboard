@@ -58,7 +58,9 @@ export const authRegister = new Elysia()
                 }
             })
 
-            return status(200, { user })
+            return status('OK', {
+                data: user
+            })
         },
         {
             body: 'register'
@@ -175,7 +177,7 @@ export const authSocialGoogle = new Elysia()
             sameSite: 'none'
         })
 
-        return status(200, {
+        return status('OK', {
             accessToken,
             user: {
                 id: user.id,
@@ -310,7 +312,7 @@ export const authSocialGithub = new Elysia()
             sameSite: 'none'
         })
 
-        return status(200, {
+        return status('OK', {
             accessToken,
             user: {
                 id: user.id,

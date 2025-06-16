@@ -165,7 +165,7 @@ export const authLogin = new Elysia()
                 sameSite: 'none'
             })
 
-            return status(200, {
+            return status('OK', {
                 accessToken,
                 user: {
                     id: user.id,
@@ -225,7 +225,7 @@ export const authRefreshToken = new Elysia()
                 role: user.role
             })
 
-            return status(200, {
+            return status('OK', {
                 accessToken
             })
         },
@@ -278,7 +278,7 @@ export const authLogout = new Elysia()
 
             cookie.refreshTokenAdmin.remove()
 
-            return status(200)
+            return status('OK')
         },
         {
             body: 'logout'
