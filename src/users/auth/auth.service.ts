@@ -80,11 +80,15 @@ export const authSocialGoogle = new Elysia()
     )
     .get(
         '/google',
-        async ({ oauth2 }) => {
+        async ({ oauth2, status }) => {
             const url = oauth2.createURL('Google', ['email', 'profile']);
             url.searchParams.set('access_type', 'offline');
 
-            return url.href
+            return status('OK', {
+                data: {
+                    url: url.href
+                }
+            })
         }
     )
     .get('/google/callback', async ({ oauth2, jwtAccessToken, status, cookie, server, request }) => {
