@@ -28,6 +28,7 @@ export const authMe = new Elysia()
                     id: true,
                     email: true,
                     name: true,
+                    username: true,
                     avatar: true,
                     provider: true,
                     role: true,
