@@ -36,8 +36,8 @@
       "@db/*": [
         "src/prisma/*"
       ],
-      "@utils/*": [
-        "src/utils/*"
+      "@helpers/*": [
+        "src/helpers/*"
       ],
       "@libs/*": [
         "src/libs/*"
