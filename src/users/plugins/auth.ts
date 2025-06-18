@@ -39,7 +39,7 @@ const authUserPlugin = (app: Elysia) =>
 
         const jwtPayload = await jwtAccessToken.verify(token)
 
-        if (!jwtPayload || !jwtPayload || !jwtPayload.sub) {
+        if (!jwtPayload || !jwtPayload || !jwtPayload.userId) {
             return status('Unauthorized', {
                 code: ERROR_CODES.UNAUTHORIZED,
                 message: 'Invalid JWT payload'
@@ -47,7 +47,7 @@ const authUserPlugin = (app: Elysia) =>
         }
 
         const user = await prismaClient.user.findFirst({
-            where: { id: jwtPayload.sub },
+            where: { id: jwtPayload.userId },
             select: {
                 id: true,
                 email: true,

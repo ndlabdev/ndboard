@@ -25,7 +25,7 @@ const jwtUserPlugin = (app: Elysia) =>
             jwt({
                 name: JWT.REFRESH_TOKEN_NAME,
                 schema: t.Object({
-                    sub: t.String(),
+                    userId: t.String(),
                     role: t.String()
                 }),
                 exp: '7 days',
