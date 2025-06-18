@@ -16,6 +16,9 @@ import { ERROR_CODES } from '@constants/errorCodes';
 // ** Plugins Imports
 import { jwtUserPlugin } from '@src/users/plugins/jwt';
 
+// ** Helpers Imports
+import { generateUsername } from '@helpers/utils';
+
 export const authSocialGithub = new Elysia()
     .use(jwtUserPlugin)
     .use(
@@ -75,10 +78,13 @@ export const authSocialGithub = new Elysia()
         })
 
         if (!user) {
+            const username = await generateUsername(profile.name, profile.email)
+
             user = await prisma.user.create({
                 data: {
                     email: profile.email,
                     name: profile.name || profile.email,
+                    username,
                     avatar: profile.picture,
                     provider: AuthProvider.GITHUB,
                     providerId: profile.id,
