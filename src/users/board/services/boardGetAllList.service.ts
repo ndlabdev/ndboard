@@ -58,7 +58,7 @@ export const boardGetAllList = new Elysia()
                     orderBy: { position: 'asc' },
                     include: {
                         cards: {
-                            orderBy: { position: 'asc' }
+                            orderBy: { order: 'asc' }
                         }
                     }
                 })

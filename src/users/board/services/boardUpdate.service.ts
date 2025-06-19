@@ -69,9 +69,9 @@ export const boardUpdate = new Elysia()
                 }
             })
 
-            return {
+            return status('OK', {
                 data: updatedBoard
-            }
+            })
         },
         {
             body: 'boardUpdate'

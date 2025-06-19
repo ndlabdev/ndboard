@@ -29,6 +29,7 @@ model Board {
     labels       Label[]
     customFields CustomField[]
     activities   Activity[]
+    card         Card[]
 
     @@unique([name, ownerId, archivedAt])
     @@index([ownerId])

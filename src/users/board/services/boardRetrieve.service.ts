@@ -58,7 +58,6 @@ export const boardRetrieve = new Elysia()
                     _count: {
                         select: {
                             lists: true,
-                            card: true,
                             members: true
                         }
                     }
@@ -98,7 +97,6 @@ export const boardRetrieve = new Elysia()
                         role: m.role
                     })),
                     listCount: board._count.lists,
-                    cardCount: board._count.card,
                     memberCount: board._count.members,
                     lists: board.lists.map(list => ({
                         id: list.id,
