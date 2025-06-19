@@ -32,11 +32,15 @@ export const authSocialGithub = new Elysia()
     )
     .get(
         '/github',
-        async ({ oauth2 }) => {
+        async ({ oauth2, status }) => {
             const url = oauth2.createURL('GitHub', ['user:email']);
             url.searchParams.set('access_type', 'offline');
 
-            return url.href
+            return status('OK', {
+                data: {
+                    url: url.href
+                }
+            })
         }
     )
     .get('/github/callback', async ({ oauth2, jwtAccessToken, status, cookie, server, request }) => {
@@ -64,30 +68,30 @@ export const authSocialGithub = new Elysia()
             });
 
             const emails = await emailsRes.json();
-            const primary = emails.find((e: any) => e.primary && e.verified);
+            const primary = emails.find((e: { primary: boolean, verified: boolean }) => e.primary && e.verified);
             email = primary?.email;
         }
 
         let user = await prisma.user.findFirst({
             where: {
                 OR: [
-                    { provider: AuthProvider.GITHUB, providerId: profile.id },
-                    { email: profile.email }
+                    { provider: AuthProvider.GITHUB, providerId: String(profile.id) },
+                    { email }
                 ]
             }
         })
 
         if (!user) {
-            const username = await generateUsername(profile.name, profile.email)
+            const username = await generateUsername(profile.name, email)
 
             user = await prisma.user.create({
                 data: {
-                    email: profile.email,
-                    name: profile.name || profile.email,
+                    email: email,
+                    name: profile.name || email,
                     username,
                     avatar: profile.picture,
                     provider: AuthProvider.GITHUB,
-                    providerId: profile.id,
+                    providerId: String(profile.id),
                     isVerified: true,
                     role: UserRole.USER
                 }
