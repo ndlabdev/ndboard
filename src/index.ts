@@ -13,6 +13,7 @@ const app = new Elysia({ normalize: true })
         cors({
             credentials: true,
             origin: [Bun.env.USER_URL!],
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
             allowedHeaders: ['Content-Type', 'Authorization']
         })
     )
