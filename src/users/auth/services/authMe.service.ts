@@ -48,5 +48,12 @@ export const authMe = new Elysia()
             return status('OK', {
                 data: profile
             })
+        },
+        {
+            detail: {
+                tags: ['Auth'],
+                summary: 'Get Current User Profile',
+                description: 'Retrieve information of the currently authenticated user based on the provided JWT access token.'
+            }
         }
     )

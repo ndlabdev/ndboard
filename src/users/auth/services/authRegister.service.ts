@@ -63,6 +63,11 @@ export const authRegister = new Elysia()
             })
         },
         {
-            body: 'register'
+            body: 'authRegister',
+            detail: {
+                tags: ['Auth'],
+                summary: 'User Registration',
+                description: 'Register a new user account using email and password. Returns the created user profile on success.'
+            }
         }
     )

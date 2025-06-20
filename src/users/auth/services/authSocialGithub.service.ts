@@ -41,6 +41,13 @@ export const authSocialGithub = new Elysia()
                     url: url.href
                 }
             })
+        },
+        {
+            detail: {
+                tags: ['Auth', 'OAuth', 'Github'],
+                summary: 'Get Github OAuth2 Authorization URL',
+                description: 'Generate and return the Github OAuth2 authorization URL for user to start the OAuth login/registration flow. Client should redirect user to this URL.',
+            }
         }
     )
     .get('/github/callback', async ({ oauth2, jwtAccessToken, status, cookie, server, request }) => {
@@ -162,4 +169,12 @@ export const authSocialGithub = new Elysia()
                 }
             }
         })
-    })
+    },
+        {
+            detail: {
+                tags: ['Auth', 'OAuth', 'Github'],
+                summary: 'Github OAuth2 Callback',
+                description: `Handle Github OAuth2 redirect. Exchange code for access token, fetch user's Github profile, register or login user, and return JWT access token plus user profile.`,
+            }
+        }
+    )

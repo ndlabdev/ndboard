@@ -41,6 +41,13 @@ export const authSocialGoogle = new Elysia()
                     url: url.href
                 }
             })
+        },
+        {
+            detail: {
+                tags: ['Auth', 'OAuth', 'Google'],
+                summary: 'Get Google OAuth2 Authorization URL',
+                description: 'Generate and return the Google OAuth2 authorization URL for user to initiate the OAuth login/registration flow. Client should redirect user to this URL.',
+            }
         }
     )
     .get('/google/callback', async ({ oauth2, jwtAccessToken, status, cookie, server, request }) => {
@@ -150,4 +157,12 @@ export const authSocialGoogle = new Elysia()
                 }
             }
         })
-    })
+    },
+        {
+            detail: {
+                tags: ['Auth', 'OAuth', 'Google'],
+                summary: 'Google OAuth2 Callback',
+                description: `Handle Google OAuth2 redirect. Exchange code for access token, fetch user's Google profile, register or login user, and return JWT access token plus user profile.`,
+            }
+        }
+    )

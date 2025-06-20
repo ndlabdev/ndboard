@@ -2,7 +2,7 @@
 import { t } from 'elysia'
 
 // ** Types Definition
-export const loginType = t.Object({
+export const authLoginType = t.Object({
     email: t.String({
         minLength: 1,
         format: 'email'
@@ -13,7 +13,7 @@ export const loginType = t.Object({
     })
 })
 
-export const registerType = t.Object({
+export const authRegisterType = t.Object({
     name: t.String({ minLength: 2 }),
     email: t.String({
         minLength: 1,
@@ -25,10 +25,10 @@ export const registerType = t.Object({
     })
 })
 
-export const refreshTokenType = t.Object({
+export const authRefreshTokenType = t.Object({
     refreshToken: t.String({ minLength: 1 })
 })
 
-export const logoutType = t.Object({
+export const authLogoutType = t.Object({
     refreshToken: t.String({ minLength: 1 })
 })
