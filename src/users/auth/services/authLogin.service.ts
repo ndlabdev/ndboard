@@ -23,7 +23,7 @@ export const authLogin = new Elysia()
     .use(jwtUserPlugin)
     .post(
         '/login',
-        async ({ body, status, jwtAccessToken, server, request, headers }) => {
+        async ({ body, status, jwtAccessToken, cookie, server, request, headers }) => {
             const { email, password } = body
             const now = new Date()
 
@@ -37,28 +37,28 @@ export const authLogin = new Elysia()
 
             // Handle user not found, or inactive, or banned, or locked
             if (!user) {
-                return {
+                return status('Unauthorized', {
                     code: ERROR_CODES.AUTH.ACCOUNT_INVALID,
                     message: 'Invalid account or password'
-                }
+                })
             }
             if (!user.isActive) {
-                return {
+                return status('Unauthorized', {
                     code: ERROR_CODES.AUTH.ACCOUNT_LOCKED,
                     message: 'Account has been deactivated'
-                }
+                })
             }
             if (user.isBanned && (!user.banExpiresAt || (user.banExpiresAt > now))) {
-                return {
+                return status('Unauthorized', {
                     code: ERROR_CODES.AUTH.ACCOUNT_LOCKED,
                     message: user.banReason || 'Account has been banned'
-                }
+                })
             }
             if (user.loginLockedUntil && user.loginLockedUntil > now) {
-                return {
+                return status('Unauthorized', {
                     code: ERROR_CODES.AUTH.ACCOUNT_LOCKED,
                     message: `Account is temporarily locked. Try again after ${user.loginLockedUntil.toISOString()}`
-                }
+                })
             }
 
             // Compare password (should not leak timing)
@@ -111,12 +111,11 @@ export const authLogin = new Elysia()
                 }
             })
 
+            // Generate tokens
             const accessToken = await jwtAccessToken.sign({
                 userId: user.id,
                 role: user.role.name
             })
-
-            // Generate tokens
             const refreshToken = crypto.randomBytes(64).toString('hex')
             const expiresAt = new Date(now.getTime() + JWT.EXPIRE_AT)
 
@@ -137,6 +136,14 @@ export const authLogin = new Elysia()
                     ipAddress: server?.requestIP(request)?.address,
                     userAgent: headers['user-agent'] || ''
                 }
+            })
+
+            cookie.refreshToken.set({
+                value: refreshToken,
+                maxAge: JWT.EXPIRE_AT,
+                secure: Bun.env.NODE_ENV === 'production',
+                httpOnly: true,
+                sameSite: 'none'
             })
 
             return status('OK', {

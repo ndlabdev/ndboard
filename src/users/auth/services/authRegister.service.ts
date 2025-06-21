@@ -43,10 +43,10 @@ export const authRegister = new Elysia()
                 where: { name: ROLE.DEFAULT }
             })
             if (!defaultRole) {
-                return {
+                return status('Not Found', {
                     code: ERROR_CODES.USER.ROLE_NOT_FOUND,
                     message: 'Default role not found in system'
-                }
+                })
             }
 
             // Create the user in database

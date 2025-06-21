@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  id                  String            @id @default(cuid())
+  id                  String            @id @default(cuid(2))
   name                String
   username            String            @unique @db.VarChar(50)
   email               String            @unique @db.VarChar(100)
@@ -46,7 +46,7 @@ model User {
 }
 
 model Role {
-  id          String   @id @default(cuid())
+  id          String   @id @default(cuid(2))
   name        String   @unique @db.VarChar(30)
   description String?  @db.VarChar(200)
   createdAt   DateTime @default(now())
@@ -57,7 +57,7 @@ model Role {
 }
 
 model Permission {
-  id             String           @id @default(cuid())
+  id             String           @id @default(cuid(2))
   action         String           @unique @db.VarChar(50)
   description    String?          @db.VarChar(200)
   RolePermission RolePermission[]
@@ -73,7 +73,7 @@ model RolePermission {
 }
 
 model UserProvider {
-  id         String   @id @default(cuid())
+  id         String   @id @default(cuid(2))
   userId     String
   provider   String   @db.VarChar(30)
   providerId String   @db.VarChar(100)
@@ -89,7 +89,7 @@ model UserProvider {
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
+  id        String   @id @default(cuid(2))
   token     String   @unique
   userId    String
   expiresAt DateTime
@@ -101,7 +101,7 @@ model RefreshToken {
 }
 
 model AuditLog {
-  id          String   @id @default(cuid())
+  id          String   @id @default(cuid(2))
   userId      String
   action      String   @db.VarChar(50)
   description String?  @db.VarChar(255)
@@ -115,7 +115,7 @@ model AuditLog {
 }
 
 model UserSecurityLog {
-  id        String   @id @default(cuid())
+  id        String   @id @default(cuid(2))
   userId    String
   action    String   @db.VarChar(50)
   token     String   @unique

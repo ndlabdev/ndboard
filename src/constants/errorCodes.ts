@@ -47,6 +47,9 @@ export const ERROR_CODES = {
         CANNOT_TRANSFER_TO_SELF: 'CANNOT_TRANSFER_TO_SELF',
         LIST_NOT_FOUND: 'LIST_NOT_FOUND'
     },
+    GENERAL: {
+        FORBIDDEN: 'FORBIDDEN'
+    }
 } as const
 
 export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES]

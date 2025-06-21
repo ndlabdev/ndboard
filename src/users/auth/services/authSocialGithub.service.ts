@@ -7,10 +7,10 @@ import crypto from 'crypto';
 
 // ** Prisma Imports
 import prisma from '@db';
-import { AuthProvider, UserRole } from '@prisma/client';
 
 // ** Constants Imports
-import { JWT } from '@constants';
+import { AUDIT_ACTION, JWT, ROLE } from '@constants';
+import { PROVIDER } from '@constants/auth';
 import { ERROR_CODES } from '@constants/errorCodes';
 
 // ** Plugins Imports
@@ -50,11 +50,13 @@ export const authSocialGithub = new Elysia()
             }
         }
     )
-    .get('/github/callback', async ({ oauth2, jwtAccessToken, status, cookie, server, request }) => {
+    .get('/github/callback', async ({ oauth2, jwtAccessToken, status, cookie, server, request, headers }) => {
+        // Get access token from Github
+        const now = new Date()
         const tokens = await oauth2.authorize('GitHub');
-
         const oauth2AccessToken = tokens.accessToken();
 
+        // Get user info from Github
         const response = await fetch('https://api.github.com/user', {
             headers: {
                 'Authorization': `Bearer ${oauth2AccessToken}`
@@ -62,7 +64,10 @@ export const authSocialGithub = new Elysia()
         });
 
         if (!response.ok) {
-            return status('Bad Gateway', { error: 'Failed to fetch user info from Github' })
+            return status('Bad Gateway', {
+                code: ERROR_CODES.GENERAL.FORBIDDEN,
+                message: 'Failed to fetch user info from Github'
+            })
         }
 
         const profile = await response.json();
@@ -79,73 +84,140 @@ export const authSocialGithub = new Elysia()
             email = primary?.email;
         }
 
-        let user = await prisma.user.findFirst({
+        // Validate minimal required info
+        if (!profile.email || !profile.id) {
+            return status('Unauthorized', {
+                code: ERROR_CODES.AUTH.ACCOUNT_INVALID,
+                message: 'GitHub account missing email or id'
+            })
+        }
+
+        // Check if user provider already exists
+        const userProvider = await prisma.userProvider.findUnique({
             where: {
-                OR: [
-                    { provider: AuthProvider.GITHUB, providerId: String(profile.id) },
-                    { email }
-                ]
+                provider_providerId: {
+                    provider: PROVIDER.GITHUB,
+                    providerId: String(profile.id)
+                }
+            },
+            include: {
+                user: {
+                    include: {
+                        role: true
+                    }
+                }
             }
         })
 
+        let user = userProvider?.user || null
+
         if (!user) {
+            const existedUser = await prisma.user.findUnique({
+                where: { email: profile.email },
+                include: { role: true }
+            })
+            if (existedUser) {
+                return status('Conflict', {
+                    code: ERROR_CODES.AUTH.EMAIL_EXISTS,
+                    message: 'Email already exists in system, please login with email/password'
+                })
+            }
+
+            // Create new user and userProvider
+            const defaultRole = await prisma.role.findFirst({
+                where: { name: ROLE.DEFAULT }
+            })
+            if (!defaultRole) {
+                return status('Not Found', {
+                    code: ERROR_CODES.USER.ROLE_NOT_FOUND,
+                    message: 'Default role not found in system'
+                })
+            }
+
+            // Generate a unique username based on the name and email
             const username = await generateUsername(profile.name, email)
 
             user = await prisma.user.create({
                 data: {
-                    email: email,
-                    name: profile.name || email,
-                    username,
-                    avatar: profile.picture,
-                    provider: AuthProvider.GITHUB,
-                    providerId: String(profile.id),
+                    email,
+                    name: profile.name || profile.login || email,
+                    avatarUrl: profile.avatar_url ?? null,
                     isVerified: true,
-                    role: UserRole.USER
+                    username,
+                    roleId: defaultRole.id,
+                    providers: {
+                        create: [{
+                            provider: PROVIDER.GITHUB,
+                            providerId: String(profile.id),
+                            email,
+                            name: profile.name || profile.login || email,
+                            avatarUrl: profile.avatar_url ?? null
+                        }]
+                    }
+                },
+                include: { role: true }
+            })
+        } else {
+            await prisma.userProvider.update({
+                where: { id: userProvider!.id },
+                data: {
+                    email,
+                    name: profile.name || profile.login || email,
+                    avatarUrl: profile.avatar_url ?? null
                 }
             })
         }
 
-        if (!user || !user.isActive || user.isBanned) {
+        // Handle user not found, or inactive, or banned, or locked
+        if (!user.isActive) {
             return status('Unauthorized', {
-                code: ERROR_CODES.ACCOUNT_INVALID,
-                message: 'Account does not exist or has been locked'
+                code: ERROR_CODES.AUTH.ACCOUNT_LOCKED,
+                message: 'Account has been deactivated'
+            })
+        }
+        if (user.isBanned && (!user.banExpiresAt || (user.banExpiresAt > now))) {
+            return status('Unauthorized', {
+                code: ERROR_CODES.AUTH.ACCOUNT_LOCKED,
+                message: user.banReason || 'Account has been banned'
             })
         }
 
-        if (user.lockedUntil && user.lockedUntil > new Date()) {
-            return status('Forbidden', {
-                code: ERROR_CODES.ACCOUNT_LOCKED,
-                message: 'Account is temporarily locked due to too many failed login attempts'
-            })
-        }
-
+        // Generate tokens
         const accessToken = await jwtAccessToken.sign({
             userId: user.id,
-            role: user.role
+            role: user.role.name
         })
-
         const refreshToken = crypto.randomBytes(64).toString('hex')
-        const expiredAt = new Date(Date.now() + JWT.EXPIRE_AT)
+        const expiresAt = new Date(Date.now() + JWT.EXPIRE_AT)
 
         await prisma.refreshToken.create({
             data: {
                 userId: user.id,
                 token: refreshToken,
-                expiredAt,
+                expiresAt,
             }
         })
 
+        // Audit log
+        await prisma.auditLog.create({
+            data: {
+                userId: user.id,
+                action: AUDIT_ACTION.LOGIN,
+                description: 'User logged in with GitHub',
+                ipAddress: server?.requestIP(request)?.address,
+                userAgent: headers['user-agent'] || ''
+            }
+        })
+
+        // Reset failed login attempts, clear lock
         await prisma.user.update({
             where: { id: user.id },
             data: {
-                loginFailCount: 0,
-                lockedUntil: null,
-                lastLoginAt: new Date(),
-                lastActivityAt: new Date(),
-                lastActivityIP: server?.requestIP(request)?.address
+                failedLoginAttempts: 0,
+                loginLockedUntil: null,
+                lastLoginAt: new Date()
             }
         })
-
 
         cookie.refreshToken.set({
             value: refreshToken,
@@ -163,9 +235,9 @@ export const authSocialGithub = new Elysia()
                     email: user.email,
                     name: user.name,
                     username: user.username,
-                    avatar: user.avatar,
+                    isVerified: user.isVerified,
                     role: user.role,
-                    provider: user.provider
+                    createdAt: user.createdAt
                 }
             }
         })
