@@ -11,7 +11,8 @@ import prisma from '@db';
 import { authModels } from '../auth.model';
 
 // ** Constants Imports
-import { HASH_PASSWORD, JWT } from '@constants';
+import { AUDIT_ACTION, HASH_PASSWORD, JWT } from '@constants';
+import { AUTH_SECURITY } from '@constants/auth';
 import { ERROR_CODES } from '@constants/errorCodes';
 
 // ** Plugins Imports
@@ -22,75 +23,119 @@ export const authLogin = new Elysia()
     .use(jwtUserPlugin)
     .post(
         '/login',
-        async ({ body, status, jwtAccessToken, server, request }) => {
+        async ({ body, status, jwtAccessToken, server, request, headers }) => {
+            const { email, password } = body
+            const now = new Date()
+
             // Find user by email
             const user = await prisma.user.findUnique({
-                where: { email: body.email }
+                where: { email },
+                include: {
+                    role: true
+                }
             })
 
-            // If user not found or locked
-            if (!user || !user.isActive || user.isBanned) {
-                return status('Unauthorized', {
-                    code: ERROR_CODES.ACCOUNT_INVALID,
-                    message: 'Account does not exist or has been locked'
-                })
+            // Handle user not found, or inactive, or banned, or locked
+            if (!user) {
+                return {
+                    code: ERROR_CODES.AUTH.ACCOUNT_INVALID,
+                    message: 'Invalid account or password'
+                }
+            }
+            if (!user.isActive) {
+                return {
+                    code: ERROR_CODES.AUTH.ACCOUNT_LOCKED,
+                    message: 'Account has been deactivated'
+                }
+            }
+            if (user.isBanned && (!user.banExpiresAt || (user.banExpiresAt > now))) {
+                return {
+                    code: ERROR_CODES.AUTH.ACCOUNT_LOCKED,
+                    message: user.banReason || 'Account has been banned'
+                }
+            }
+            if (user.loginLockedUntil && user.loginLockedUntil > now) {
+                return {
+                    code: ERROR_CODES.AUTH.ACCOUNT_LOCKED,
+                    message: `Account is temporarily locked. Try again after ${user.loginLockedUntil.toISOString()}`
+                }
             }
 
-            if (user.lockedUntil && user.lockedUntil > new Date()) {
-                return status('Forbidden', {
-                    code: ERROR_CODES.ACCOUNT_LOCKED,
-                    message: 'Account is temporarily locked due to too many failed login attempts'
-                })
-            }
+            // Compare password (should not leak timing)
+            const validPassword = await Bun.password.verify(password, user.password!, HASH_PASSWORD.ALGORITHM)
 
-            // Check password
-            const validPassword = await Bun.password.verify(body.password, user.password!, HASH_PASSWORD.ALGORITHM)
+            // Handle password wrong
             if (!validPassword) {
-                let newFailCount = user.loginFailCount + 1
-                let lockedUntil = null
-                if (newFailCount >= 5) {
-                    lockedUntil = new Date(Date.now() + 5 * 60 * 1000)
-                    newFailCount = 0
+                const failedAttempts = user.failedLoginAttempts + 1
+                const updateData: {
+                    failedLoginAttempts?: number
+                    loginLockedUntil?: Date | null
+                } = { failedLoginAttempts: failedAttempts }
+
+                // Lock account if failed too many times
+                if (failedAttempts >= AUTH_SECURITY.MAX_FAILED_ATTEMPTS) {
+                    updateData.loginLockedUntil = new Date(
+                        now.getTime() + AUTH_SECURITY.LOCK_TIME_MINUTES * 60 * 1000
+                    )
                 }
 
                 await prisma.user.update({
                     where: { id: user.id },
+                    data: updateData
+                })
+
+                // Audit log
+                await prisma.auditLog.create({
                     data: {
-                        loginFailCount: newFailCount,
-                        lockedUntil
+                        userId: user.id,
+                        action: AUDIT_ACTION.LOGIN,
+                        description: 'Failed login attempt',
+                        ipAddress: server?.requestIP(request)?.address,
+                        userAgent: headers['user-agent'] || ''
                     }
                 })
 
                 return status('Unauthorized', {
-                    code: ERROR_CODES.INVALID_PASSWORD,
-                    message: 'Incorrect password'
+                    code: ERROR_CODES.AUTH.INVALID_PASSWORD,
+                    message: 'Invalid account or password'
                 })
             }
 
-            const accessToken = await jwtAccessToken.sign({
-                userId: user.id,
-                role: user.role
+            // Reset failed login attempts, clear lock
+            await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    failedLoginAttempts: 0,
+                    loginLockedUntil: null,
+                    lastLoginAt: new Date()
+                }
             })
 
+            const accessToken = await jwtAccessToken.sign({
+                userId: user.id,
+                role: user.role.name
+            })
+
+            // Generate tokens
             const refreshToken = crypto.randomBytes(64).toString('hex')
-            const expiredAt = new Date(Date.now() + JWT.EXPIRE_AT)
+            const expiresAt = new Date(now.getTime() + JWT.EXPIRE_AT)
 
             await prisma.refreshToken.create({
                 data: {
                     userId: user.id,
                     token: refreshToken,
-                    expiredAt,
+                    expiresAt
                 }
             })
 
-            await prisma.user.update({
-                where: { id: user.id },
+            // Audit log
+            await prisma.auditLog.create({
                 data: {
-                    loginFailCount: 0,
-                    lockedUntil: null,
-                    lastLoginAt: new Date(),
-                    lastActivityAt: new Date(),
-                    lastActivityIP: server?.requestIP(request)?.address
+                    userId: user.id,
+                    action: AUDIT_ACTION.LOGIN,
+                    description: 'User logged in',
+                    ipAddress: server?.requestIP(request)?.address,
+                    userAgent: headers['user-agent'] || ''
                 }
             })
 
@@ -102,7 +147,6 @@ export const authLogin = new Elysia()
                         email: user.email,
                         name: user.name,
                         username: user.username,
-                        provider: user.provider,
                         isVerified: user.isVerified,
                         role: user.role,
                         createdAt: user.createdAt
@@ -115,7 +159,7 @@ export const authLogin = new Elysia()
             detail: {
                 tags: ['Auth'],
                 summary: 'User Login with Email & Password',
-                description: 'Authenticate user with email and password. Returns JWT access token and basic user profile on success.'
+                description: 'Authenticate user with email and password'
             }
         }
     )

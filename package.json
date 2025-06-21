@@ -2,7 +2,6 @@
   "name": "ndboard",
   "version": "1.0.50",
   "prisma": {
-    "schema": "./prisma",
     "seed": "bun prisma/seed.ts"
   },
   "scripts": {

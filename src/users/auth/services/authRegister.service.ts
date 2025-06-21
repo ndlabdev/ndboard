@@ -3,10 +3,9 @@ import { Elysia } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
-import { AuthProvider } from '@prisma/client';
 
 // ** Constants Imports
-import { HASH_PASSWORD } from '@constants';
+import { AUDIT_ACTION, HASH_PASSWORD, ROLE } from '@constants';
 import { ERROR_CODES } from '@constants/errorCodes';
 
 // ** Models Imports
@@ -22,39 +21,60 @@ export const authRegister = new Elysia()
         async ({ body, status }) => {
             const { email, name, password } = body
 
-            const exist = await prisma.user.findUnique({
+            // Check if the email or username is already in use
+            const existingUser = await prisma.user.findUnique({
                 where: { email }
             })
-
-            if (exist) {
+            if (existingUser) {
                 return status('Conflict', {
-                    code: ERROR_CODES.EMAIL_EXISTS,
+                    code: ERROR_CODES.AUTH.EMAIL_EXISTS,
                     message: 'This email is already in use'
                 })
             }
 
+            // Generate a unique username based on the name and email
             const username = await generateUsername(name, email)
 
-            const hashed = await Bun.password.hash(password, HASH_PASSWORD.ALGORITHM)
+            // Hash the password before saving to database
+            const hashedPassword = await Bun.password.hash(password, HASH_PASSWORD.ALGORITHM)
 
+            // Retrieve the default user role from database
+            const defaultRole = await prisma.role.findFirst({
+                where: { name: ROLE.DEFAULT }
+            })
+            if (!defaultRole) {
+                return {
+                    code: ERROR_CODES.USER.ROLE_NOT_FOUND,
+                    message: 'Default role not found in system'
+                }
+            }
+
+            // Create the user in database
             const user = await prisma.user.create({
                 data: {
                     email,
-                    name,
                     username,
-                    password: hashed,
-                    provider: AuthProvider.LOCAL,
-                    isVerified: false,
+                    name,
+                    password: hashedPassword,
+                    roleId: defaultRole.id
                 },
                 select: {
                     id: true,
                     email: true,
-                    name: true,
                     username: true,
-                    provider: true,
+                    name: true,
                     isVerified: true,
                     role: true,
-                    createdAt: true
+                    createdAt: true,
+                }
+            })
+
+            // Log the registration action in AuditLog
+            await prisma.auditLog.create({
+                data: {
+                    userId: user.id,
+                    action: AUDIT_ACTION.REGISTER,
+                    description: 'User registered an account'
                 }
             })
 
@@ -66,8 +86,8 @@ export const authRegister = new Elysia()
             body: 'authRegister',
             detail: {
                 tags: ['Auth'],
-                summary: 'User Registration',
-                description: 'Register a new user account using email and password. Returns the created user profile on success.'
+                summary: 'Register new user',
+                description: 'Register a new user account using email and password'
             }
         }
     )

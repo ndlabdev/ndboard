@@ -5,11 +5,124 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String            @id @default(cuid())
+  name                String
+  username            String            @unique @db.VarChar(50)
+  email               String            @unique @db.VarChar(100)
+  password            String?
+  avatarUrl           String?
+  bio                 String?           @db.VarChar(500)
+  isActive            Boolean           @default(true)
+  isVerified          Boolean           @default(false)
+  isBanned            Boolean           @default(false)
+  banReason           String?           @db.VarChar(255)
+  bannedAt            DateTime?
+  banExpiresAt        DateTime?
+  failedLoginAttempts Int               @default(0)
+  loginLockedUntil    DateTime?
+  lastLoginAt         DateTime?
+  roleId              String
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  role                Role              @relation(fields: [roleId], references: [id])
+  providers           UserProvider[]
+  refreshTokens       RefreshToken[]
+  auditLogs           AuditLog[]
+  securityLogs        UserSecurityLog[]
+
+  @@index([isActive])
+  @@index([isBanned])
+  @@index([roleId])
+  @@index([email, username])
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique @db.VarChar(30)
+  description String?  @db.VarChar(200)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users          User[]
+  RolePermission RolePermission[]
+}
+
+model Permission {
+  id             String           @id @default(cuid())
+  action         String           @unique @db.VarChar(50)
+  description    String?          @db.VarChar(200)
+  RolePermission RolePermission[]
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model UserProvider {
+  id         String   @id @default(cuid())
+  userId     String
+  provider   String   @db.VarChar(30)
+  providerId String   @db.VarChar(100)
+  email      String   @db.VarChar(100)
+  name       String?  @db.VarChar(100)
+  avatarUrl  String?
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([provider, providerId])
+  @@index([userId])
+  @@index([email])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String   @db.VarChar(50)
+  description String?  @db.VarChar(255)
+  ipAddress   String?  @db.VarChar(50)
+  userAgent   String?  @db.VarChar(255)
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action, createdAt])
+}
+
+model UserSecurityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   @db.VarChar(50)
+  token     String   @unique
+  isUsed    Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, action])
 }

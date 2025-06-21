@@ -34,3 +34,15 @@ export const PAGE = {
 
 export type AdminTargetType = typeof ADMIN_TARGET_TYPES[keyof typeof ADMIN_TARGET_TYPES]
 export type AdminAction = typeof ADMIN_ACTIONS[keyof typeof ADMIN_ACTIONS]
+
+export const ROLE = {
+    SUPERADMIN: 'superadmin',
+    ADMIN: 'admin',
+    DEFAULT: 'user',
+    GUEST: 'guest'
+} as const
+
+export const AUDIT_ACTION = {
+    REGISTER: 'register',
+    LOGIN: 'login'
+} as const
