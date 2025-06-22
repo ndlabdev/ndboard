@@ -11,61 +11,62 @@ import { jwtUserPlugin } from '@src/users/plugins/jwt'
 import { ERROR_CODES } from '@constants/errorCodes'
 
 const authUserPlugin = (app: Elysia) =>
-    app.use(jwtUserPlugin).derive(async ({ jwtAccessToken, status, path, headers }) => {
-        const IGNORED_PATHS = [
-            '/api/user/auth/login',
-            '/api/user/auth/refresh'
-        ]
+    app
+        .use(jwtUserPlugin)
+        .derive(async ({ headers, status, jwtAccessToken }) => {
+            const authorization = headers['authorization']
 
-        if (IGNORED_PATHS.includes(path)) return {}
+            if (!authorization) {
+                return status('Unauthorized', {
+                    code: ERROR_CODES.UNAUTHORIZED,
+                    message: 'Missing Authorization header'
+                })
+            }
 
-        const authorization = headers['authorization']
+            const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : null
 
-        if (!authorization) {
-            return status('Unauthorized', {
-                code: ERROR_CODES.UNAUTHORIZED,
-                message: 'Missing Authorization header'
+            if (!token) {
+                return status('Unauthorized', {
+                    code: ERROR_CODES.UNAUTHORIZED,
+                    message: 'Invalid Bearer token'
+                })
+            }
+
+            const jwtPayload = await jwtAccessToken.verify(token)
+
+            if (!jwtPayload || !jwtPayload || !jwtPayload.userId) {
+                return status('Unauthorized', {
+                    code: ERROR_CODES.UNAUTHORIZED,
+                    message: 'Invalid JWT payload'
+                })
+            }
+
+            const user = await prismaClient.user.findUnique({
+                where: { id: jwtPayload.userId },
+                include: { role: true }
             })
-        }
 
-        const token = authorization.startsWith('Bearer ') ? authorization.slice(7) : null
+            if (!user || !user.isActive || user.isBanned) {
+                return status('Unauthorized', {
+                    code: ERROR_CODES.ACCOUNT_INVALID,
+                    message: 'Account does not exist or has been locked'
+                })
+            }
 
-        if (!token) {
-            return status('Unauthorized', {
-                code: ERROR_CODES.UNAUTHORIZED,
-                message: 'Invalid Bearer token'
-            })
-        }
-
-        const jwtPayload = await jwtAccessToken.verify(token)
-
-        if (!jwtPayload || !jwtPayload || !jwtPayload.userId) {
-            return status('Unauthorized', {
-                code: ERROR_CODES.UNAUTHORIZED,
-                message: 'Invalid JWT payload'
-            })
-        }
-
-        const user = await prismaClient.user.findFirst({
-            where: { id: jwtPayload.userId },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                role: true,
-                isActive: true,
-                isBanned: true
+            return {
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    username: user.username,
+                    name: user.name,
+                    avatarUrl: user.avatarUrl,
+                    isVerified: user.isVerified,
+                    isActive: user.isActive,
+                    role: user.role?.name,
+                    createdAt: user.createdAt,
+                    updatedAt: user.updatedAt
+                },
             }
         })
-
-        if (!user || !user.isActive || user.isBanned) {
-            return status('Unauthorized', {
-                code: ERROR_CODES.ACCOUNT_INVALID,
-                message: 'Account does not exist or has been locked'
-            })
-        }
-
-        return { user }
-    })
 
 export { authUserPlugin }

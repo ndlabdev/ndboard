@@ -6,7 +6,7 @@ import crypto from 'crypto'
 
 // ** Prisma Imports
 import prisma from '@db'
-import { UserRole } from '@prisma/client'
+// import { UserRole } from '@prisma/client'
 
 // ** Constants Imports
 import { ADMIN_ACTIONS, ADMIN_TARGET_TYPES, HASH_PASSWORD, JWT } from '@constants'

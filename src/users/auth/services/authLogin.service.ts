@@ -62,7 +62,7 @@ export const authLogin = new Elysia()
             }
 
             // Compare password (should not leak timing)
-            const validPassword = await Bun.password.verify(password, user.password!, HASH_PASSWORD.ALGORITHM)
+            const validPassword = await Bun.password.verify(password, user.password || '', HASH_PASSWORD.ALGORITHM)
 
             // Handle password wrong
             if (!validPassword) {
