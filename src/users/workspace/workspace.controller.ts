@@ -5,10 +5,12 @@ import { Elysia } from 'elysia'
 import {
     workspaceCreate,
     workspaceDetail,
-    workspaceList
+    workspaceList,
+    workspaceUpdate
 } from './workspace.service'
 
 export const workspaceController = new Elysia({ prefix: '/workspace' })
     .use(workspaceCreate)
     .use(workspaceDetail)
     .use(workspaceList)
+    .use(workspaceUpdate)

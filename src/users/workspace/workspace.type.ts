@@ -13,6 +13,8 @@ export const workspaceCreateType = t.Object({
     description: t.Optional(t.String({ maxLength: 255 }))
 })
 
+export const workspaceUpdateType = workspaceCreateType
+
 export const workspaceSearchType = t.Object({
     ...paginationType,
     name: t.Optional(t.String({ maxLength: 100 })),

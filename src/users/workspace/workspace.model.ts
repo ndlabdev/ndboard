@@ -5,9 +5,11 @@ import { Elysia } from 'elysia'
 import {
     workspaceCreateType,
     workspaceSearchType,
+    workspaceUpdateType,
 } from './workspace.type'
 
 export const workspaceModels = new Elysia().model({
     workspaceCreate: workspaceCreateType,
     workspaceSearch: workspaceSearchType,
+    workspaceUpdate: workspaceUpdateType,
 })
