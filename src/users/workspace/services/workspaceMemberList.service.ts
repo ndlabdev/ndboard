@@ -64,6 +64,7 @@ export const workspaceMemberList = new Elysia()
                     prisma.workspaceMember.findMany({
                         take,
                         skip,
+                        where: search,
                         include: {
                             user: true,
                             invitedBy: true

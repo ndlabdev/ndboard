@@ -41,6 +41,7 @@ export const workspaceList = new Elysia()
                     prisma.workspaceMember.findMany({
                         take,
                         skip,
+                        where: search,
                         include: {
                             workspace: {
                                 include: {

@@ -35,3 +35,12 @@ export const workspaceMemberSearchType = t.Object({
     search: t.Optional(t.String({ maxLength: 100 })),
     role: t.Optional(t.Enum(WORKSPACE_ROLES))
 })
+
+export const workspaceInviteMemberType = t.Object({
+    email: t.String({
+        minLength: 1,
+        format: 'email'
+    }),
+    userId: t.Optional(t.String()),
+    role: t.Optional(t.Enum(WORKSPACE_ROLES))
+})

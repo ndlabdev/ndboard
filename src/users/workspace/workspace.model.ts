@@ -4,6 +4,7 @@ import { Elysia } from 'elysia'
 // ** Types Imports
 import {
     workspaceCreateType,
+    workspaceInviteMemberType,
     workspaceMemberSearchType,
     workspaceSearchType,
     workspaceUpdateType
@@ -14,4 +15,5 @@ export const workspaceModels = new Elysia().model({
     workspaceSearch: workspaceSearchType,
     workspaceUpdate: workspaceUpdateType,
     workspaceMemberSearch: workspaceMemberSearchType,
+    workspaceInviteMember: workspaceInviteMemberType,
 })
