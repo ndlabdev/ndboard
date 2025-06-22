@@ -9,7 +9,7 @@ import prisma from '@db';
 import { Prisma } from '@prisma/client';
 
 // ** Constants Imports
-import { PAGE } from '@constants';
+import { PAGE, WORKSPACE_ROLES } from '@constants';
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth';
@@ -27,7 +27,13 @@ export const workspaceList = new Elysia()
             const take = pageSize || undefined
 
             const search: Prisma.WorkspaceMemberWhereInput = {
-                userId: user.id
+                userId: user.id,
+                role: query.role && Object.values(WORKSPACE_ROLES).includes(query.role) ? query.role : undefined,
+                workspace: {
+                    name: query.name
+                        ? { contains: query.name, mode: 'insensitive' }
+                        : undefined,
+                }
             }
 
             try {
@@ -36,10 +42,18 @@ export const workspaceList = new Elysia()
                         take,
                         skip,
                         include: {
-                            workspace: true
+                            workspace: {
+                                include: {
+                                    _count: {
+                                        select: {
+                                            members: true
+                                        }
+                                    }
+                                }
+                            }
                         },
                         orderBy: {
-                            joinedAt: 'desc'
+                            [query.sortBy || 'joinedAt']: query.order || 'desc'
                         }
                     }),
                     prisma.workspaceMember.count({
@@ -48,16 +62,20 @@ export const workspaceList = new Elysia()
                 ])
 
                 return status('OK', {
-                    data: data.map(member => ({
-                        id: member.workspace.id,
-                        name: member.workspace.name,
-                        description: member.workspace.description,
-                        role: member.role,
-                        joinedAt: member.joinedAt,
-                        ownerId: member.workspace.ownerId,
-                        createdAt: member.workspace.createdAt,
-                        updatedAt: member.workspace.updatedAt
-                    })),
+                    data: data.map(member => {
+                        const { workspace } = member
+                        return {
+                            id: workspace.id,
+                            name: workspace.name,
+                            description: workspace.description,
+                            role: member.role,
+                            joinedAt: member.joinedAt,
+                            ownerId: workspace.ownerId,
+                            createdAt: workspace.createdAt,
+                            updatedAt: workspace.updatedAt,
+                            memberCount: workspace._count?.members ?? 0
+                        }
+                    }),
                     meta: {
                         total,
                         page,
@@ -73,8 +91,8 @@ export const workspaceList = new Elysia()
             query: 'workspaceSearch',
             detail: {
                 tags: ['Workspace'],
-                summary: 'Get list of workspaces the user is a member of',
-                description: 'Return paginated list of workspaces, each with member role and join info'
+                summary: 'Get paginated workspace list with filter, search, sort',
+                description: 'Return all workspaces the user belongs to, with filter, search, and sort support'
             }
         },
     )
