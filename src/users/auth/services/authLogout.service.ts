@@ -10,7 +10,7 @@ import { ERROR_CODES } from '@constants/errorCodes';
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth';
 
-export const authMe = new Elysia()
+export const authLogout = new Elysia()
     .use(authUserPlugin)
     .post(
         '/logout',
