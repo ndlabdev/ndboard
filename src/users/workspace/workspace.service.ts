@@ -6,5 +6,6 @@ export * from './services/workspaceInviteMember.service';
 export * from './services/workspaceList.service';
 export * from './services/workspaceMemberList.service';
 export * from './services/workspaceRemoveMember.service';
+export * from './services/workspaceTransferOwner.service';
 export * from './services/workspaceUpdate.service';
 

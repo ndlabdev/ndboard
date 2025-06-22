@@ -8,7 +8,8 @@ import {
     workspaceInviteMemberType,
     workspaceMemberSearchType,
     workspaceSearchType,
-    workspaceUpdateType
+    workspaceTransferOwnerType,
+    workspaceUpdateType,
 } from './workspace.type'
 
 export const workspaceModels = new Elysia().model({
@@ -18,4 +19,5 @@ export const workspaceModels = new Elysia().model({
     workspaceMemberSearch: workspaceMemberSearchType,
     workspaceInviteMember: workspaceInviteMemberType,
     workspaceChangeMemberRole: workspaceChangeMemberRoleType,
+    workspaceTransferOwner: workspaceTransferOwnerType,
 })
