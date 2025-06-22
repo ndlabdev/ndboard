@@ -1,3 +1,4 @@
+export * from './services/workspaceChangeMemberRole.service';
 export * from './services/workspaceCreate.service';
 export * from './services/workspaceDelete.service';
 export * from './services/workspaceDetail.service';

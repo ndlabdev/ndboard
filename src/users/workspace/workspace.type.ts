@@ -44,3 +44,7 @@ export const workspaceInviteMemberType = t.Object({
     userId: t.Optional(t.String()),
     role: t.Optional(t.Enum(WORKSPACE_ROLES))
 })
+
+export const workspaceChangeMemberRoleType = t.Object({
+    role: t.Optional(t.Enum(WORKSPACE_ROLES))
+})
