@@ -29,3 +29,9 @@ export const workspaceSearchType = t.Object({
         t.Literal('desc')
     ], { default: 'desc' }))
 })
+
+export const workspaceMemberSearchType = t.Object({
+    ...paginationType,
+    search: t.Optional(t.String({ maxLength: 100 })),
+    role: t.Optional(t.Enum(WORKSPACE_ROLES))
+})

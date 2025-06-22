@@ -1,9 +1,6 @@
 // ** Elysia Imports
 import { Elysia } from 'elysia';
 
-// ** Models Imports
-import { workspaceModels } from '../workspace.model';
-
 // ** Prisma Imports
 import prisma from '@db';
 
@@ -15,7 +12,6 @@ import { authUserPlugin } from '@src/users/plugins/auth';
 
 export const workspaceDetail = new Elysia()
     .use(authUserPlugin)
-    .use(workspaceModels)
     .get(
         '/:workspaceId',
         async ({ status, params, user }) => {

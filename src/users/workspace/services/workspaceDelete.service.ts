@@ -1,9 +1,6 @@
 // ** Elysia Imports
 import { Elysia } from 'elysia';
 
-// ** Models Imports
-import { workspaceModels } from '../workspace.model';
-
 // ** Prisma Imports
 import prisma from '@db';
 
@@ -15,10 +12,9 @@ import { authUserPlugin } from '@src/users/plugins/auth';
 
 export const workspaceDelete = new Elysia()
     .use(authUserPlugin)
-    .use(workspaceModels)
     .delete(
         '/:workspaceId',
-        async ({ status, params, body, user }) => {
+        async ({ status, params, user }) => {
             const workspaceId = params.workspaceId
             const userId = user.id
 
@@ -52,11 +48,10 @@ export const workspaceDelete = new Elysia()
             }
         },
         {
-            body: 'workspaceUpdate',
             detail: {
                 tags: ['Workspace'],
-                summary: 'Update workspace info',
-                description: 'Only workspace owner can update name, description'
+                summary: 'Delete workspace',
+                description: 'Only owner can delete workspace'
             }
         },
     )
