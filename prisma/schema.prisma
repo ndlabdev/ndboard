@@ -14,30 +14,33 @@ datasource db {
 }
 
 model User {
-  id                  String            @id @default(cuid(2))
-  name                String
-  username            String            @unique @db.VarChar(50)
-  email               String            @unique @db.VarChar(100)
-  password            String?
-  avatarUrl           String?
-  bio                 String?           @db.VarChar(500)
-  isActive            Boolean           @default(true)
-  isVerified          Boolean           @default(false)
-  isBanned            Boolean           @default(false)
-  banReason           String?           @db.VarChar(255)
-  bannedAt            DateTime?
-  banExpiresAt        DateTime?
-  failedLoginAttempts Int               @default(0)
-  loginLockedUntil    DateTime?
-  lastLoginAt         DateTime?
-  roleId              String
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  role                Role              @relation(fields: [roleId], references: [id])
-  providers           UserProvider[]
-  refreshTokens       RefreshToken[]
-  auditLogs           AuditLog[]
-  securityLogs        UserSecurityLog[]
+  id                   String            @id @default(cuid(2))
+  name                 String
+  username             String            @unique @db.VarChar(50)
+  email                String            @unique @db.VarChar(100)
+  password             String?
+  avatarUrl            String?
+  bio                  String?           @db.VarChar(500)
+  isActive             Boolean           @default(true)
+  isVerified           Boolean           @default(false)
+  isBanned             Boolean           @default(false)
+  banReason            String?           @db.VarChar(255)
+  bannedAt             DateTime?
+  banExpiresAt         DateTime?
+  failedLoginAttempts  Int               @default(0)
+  loginLockedUntil     DateTime?
+  lastLoginAt          DateTime?
+  roleId               String
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  role                 Role              @relation(fields: [roleId], references: [id])
+  providers            UserProvider[]
+  refreshTokens        RefreshToken[]
+  auditLogs            AuditLog[]
+  securityLogs         UserSecurityLog[]
+  workspacesOwned      Workspace[]       @relation("OwnedWorkspaces")
+  workspaceMemberships WorkspaceMember[] @relation("WorkspaceMemberships")
+  invitedMembers       WorkspaceMember[] @relation("InvitedMembers")
 
   @@index([isActive])
   @@index([isBanned])
@@ -53,14 +56,14 @@ model Role {
   updatedAt   DateTime @updatedAt
 
   users          User[]
-  RolePermission RolePermission[]
+  rolePermission RolePermission[]
 }
 
 model Permission {
   id             String           @id @default(cuid(2))
   action         String           @unique @db.VarChar(50)
   description    String?          @db.VarChar(200)
-  RolePermission RolePermission[]
+  rolePermission RolePermission[]
 }
 
 model RolePermission {
@@ -125,4 +128,30 @@ model UserSecurityLog {
   user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId, action])
+}
+
+model Workspace {
+  id          String            @id @default(cuid(2))
+  name        String            @db.VarChar(100)
+  description String?           @db.VarChar(255)
+  ownerId     String
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  owner       User              @relation("OwnedWorkspaces", fields: [ownerId], references: [id])
+  members     WorkspaceMember[] @relation("WorkspaceMembers")
+
+  @@index([ownerId])
+}
+
+model WorkspaceMember {
+  workspaceId String
+  userId      String
+  role        String
+  joinedAt    DateTime  @default(now())
+  invitedById String?
+  workspace   Workspace @relation("WorkspaceMembers", fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation("WorkspaceMemberships", fields: [userId], references: [id], onDelete: Cascade)
+  invitedBy   User?     @relation("InvitedMembers", fields: [invitedById], references: [id])
+
+  @@id([workspaceId, userId])
 }
