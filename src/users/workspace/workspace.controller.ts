@@ -9,6 +9,7 @@ import {
     workspaceInviteMember,
     workspaceList,
     workspaceMemberList,
+    workspaceRemoveMember,
     workspaceUpdate
 } from './workspace.service'
 
@@ -20,3 +21,4 @@ export const workspaceController = new Elysia({ prefix: '/workspace' })
     .use(workspaceDelete)
     .use(workspaceMemberList)
     .use(workspaceInviteMember)
+    .use(workspaceRemoveMember)
