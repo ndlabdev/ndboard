@@ -140,6 +140,7 @@ model Workspace {
   owner       User              @relation("OwnedWorkspaces", fields: [ownerId], references: [id])
   members     WorkspaceMember[] @relation("WorkspaceMembers")
 
+  @@unique([ownerId, name])
   @@index([ownerId])
 }
 
