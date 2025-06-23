@@ -8,6 +8,7 @@ import {
     boardDelete,
     boardDetail,
     boardList,
+    boardRestore,
     boardUpdate,
 } from './board.service'
 
@@ -18,3 +19,4 @@ export const boardController = new Elysia({ prefix: '/boards' })
     .use(boardUpdate)
     .use(boardDelete)
     .use(boardArchive)
+    .use(boardRestore)

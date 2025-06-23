@@ -10,10 +10,10 @@ import { ERROR_CODES } from '@constants/errorCodes';
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth';
 
-export const boardDelete = new Elysia()
+export const boardRestore = new Elysia()
     .use(authUserPlugin)
-    .delete(
-        '/:boardId',
+    .patch(
+        '/:boardId/restore',
         async ({ status, params, user, server, request, headers }) => {
             const { boardId } = params
             const userId = user.id
@@ -33,44 +33,56 @@ export const boardDelete = new Elysia()
             if (board.ownerId !== userId) {
                 return status('Forbidden', {
                     code: ERROR_CODES.BOARD.FORBIDDEN,
-                    message: 'You do not have permission to delete this board'
+                    message: 'You do not have permission to restore this board'
+                })
+            }
+
+            // Do not archive if already archived
+            if (!board.isArchived) {
+                return status('Conflict', {
+                    code: ERROR_CODES.BOARD.NOT_ARCHIVED,
+                    message: 'Board is not archived'
                 })
             }
 
             try {
-                // Delete the board and related logs atomically
-                const deletedBoard = await prisma.board.delete({
-                    where: { id: boardId }
+                // Restore the board by setting isArchived to false and clearing archivedAt
+                const restoredBoard = await prisma.board.update({
+                    where: { id: boardId },
+                    data: {
+                        isArchived: false,
+                        archivedAt: null,
+                        updatedById: userId
+                    }
                 })
 
                 await prisma.$transaction([
-                    prisma.board.delete({
-                        where: { id: boardId }
-                    }),
-                    // Create an audit log for deleting the board
+                    // Create audit log and board activity for restoring the board
                     prisma.auditLog.create({
                         data: {
                             userId,
-                            action: 'BOARD_DELETE',
-                            description: `Deleted board "${board.name}" (id: ${boardId})`,
+                            action: 'BOARD_RESTORE',
+                            description: `Restored board "${board.name}" (id: ${boardId})`,
                             ipAddress: server?.requestIP(request)?.address,
                             userAgent: headers['user-agent'] || ''
                         }
                     }),
-                    // Create a board activity log for deleting the board
+                    // Create a board activity log for restore the board
                     prisma.boardActivity.create({
                         data: {
                             boardId,
                             userId,
-                            action: 'delete',
-                            detail: `Deleted board "${board.name}"`
+                            action: 'restore',
+                            detail: `Restored board "${board.name}"`
                         }
                     })
                 ])
 
                 return status('OK', {
                     data: {
-                        id: deletedBoard.id
+                        id: restoredBoard.id,
+                        isArchived: restoredBoard.isArchived,
+                        archivedAt: restoredBoard.archivedAt
                     }
                 })
             } catch (error) {
@@ -80,8 +92,8 @@ export const boardDelete = new Elysia()
         {
             detail: {
                 tags: ['Board'],
-                summary: 'Delete board',
-                description: 'Delete a board by ID. Only the board owner can delete a board. All associated resources (lists, cards, etc.) will be deleted as well.'
+                summary: 'Restore board',
+                description: 'Restore an archived board by ID. Only the board owner can restore a board.'
             }
         },
     )

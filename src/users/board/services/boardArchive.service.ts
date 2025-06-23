@@ -33,7 +33,7 @@ export const boardArchive = new Elysia()
             if (board.ownerId !== userId) {
                 return status('Forbidden', {
                     code: ERROR_CODES.BOARD.FORBIDDEN,
-                    message: 'You do not have permission to update this board'
+                    message: 'You do not have permission to archive this board'
                 })
             }
 
