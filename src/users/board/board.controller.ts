@@ -7,6 +7,7 @@ import {
     boardCreate,
     boardDelete,
     boardDetail,
+    boardGetBoardMember,
     boardInviteMember,
     boardList,
     boardRemoveMember,
@@ -26,3 +27,4 @@ export const boardController = new Elysia({ prefix: '/boards' })
     .use(boardTransferOwner)
     .use(boardInviteMember)
     .use(boardRemoveMember)
+    .use(boardGetBoardMember)

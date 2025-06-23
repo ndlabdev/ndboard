@@ -128,8 +128,8 @@ export const boardRemoveMember = new Elysia()
         {
             detail: {
                 tags: ['Board'],
-                summary: 'Invite member to board',
-                description: 'Invite a workspace member to join the board. Only the board owner can invite. Activity and audit logs are created for each invite.'
+                summary: 'Remove member from board',
+                description: 'Remove a member from the board by ID. Only the board owner or admin can remove members. Cannot remove the board owner.'
             }
         },
     )
