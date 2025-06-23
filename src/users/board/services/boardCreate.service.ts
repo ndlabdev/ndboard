@@ -65,6 +65,15 @@ export const boardCreate = new Elysia()
                     }
                 })
 
+                await prisma.boardActivity.create({
+                    data: {
+                        boardId: newBoard.id,
+                        userId,
+                        action: 'create',
+                        detail: `Created board "${name}"`,
+                    }
+                })
+
                 return status('Created', {
                     data: newBoard
                 })
