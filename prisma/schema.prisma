@@ -204,6 +204,8 @@ model Board {
   @@unique([workspaceId, name])
   @@index([workspaceId])
   @@index([ownerId])
+  @@index([createdById])
+  @@index([updatedById])
   @@index([visibility])
 }
 

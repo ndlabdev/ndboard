@@ -82,6 +82,11 @@ export const boardCreate = new Elysia()
                         default: BOARD_VISIBILITY.PRIVATE,
                     })
                 ),
-            })
+            }),
+            detail: {
+                tags: ['Board'],
+                summary: 'Create a new board',
+                description: 'Create a new board in a specific workspace. User must be a member of the workspace. Board name must be unique within the workspace.'
+            },
         }
     )
