@@ -42,6 +42,8 @@ model User {
   workspaceMemberships   WorkspaceMember[]        @relation("WorkspaceMemberships")
   invitedMembers         WorkspaceMember[]        @relation("InvitedMembers")
   boardOwned             Board[]                  @relation("BoardOwner")
+  boardsCreated          Board[]                  @relation("BoardCreatedBy")
+  boardsUpdated          Board[]                  @relation("BoardUpdatedBy")
   boardMembers           BoardMember[]            @relation("BoardMember_User")
   invitedBoardMembers    BoardMember[]            @relation("BoardMember_InvitedBy")
   boardFavorites         BoardFavorite[]
@@ -177,6 +179,8 @@ model Board {
   description   String?            @db.VarChar(255)
   workspaceId   String
   ownerId       String
+  createdById   String
+  updatedById   String
   visibility    String
   coverImageUrl String?            @db.VarChar(255)
   isTemplate    Boolean            @default(false)
@@ -186,6 +190,8 @@ model Board {
   updatedAt     DateTime           @updatedAt
   workspace     Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   owner         User               @relation("BoardOwner", fields: [ownerId], references: [id])
+  createdBy     User               @relation("BoardCreatedBy", fields: [createdById], references: [id])
+  updatedBy     User               @relation("BoardUpdatedBy", fields: [updatedById], references: [id])
   members       BoardMember[]
   favorites     BoardFavorite[]
   lists         List[]
@@ -193,7 +199,7 @@ model Board {
   activities    BoardActivity[]
   customFields  BoardCustomField[]
   attachments   BoardAttachment[]
-  Card          Card[]
+  card          Card[]
 
   @@unique([workspaceId, name])
   @@index([workspaceId])

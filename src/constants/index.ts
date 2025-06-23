@@ -53,3 +53,9 @@ export const WORKSPACE_ROLES = {
     MEMBER: 'member',
     VIEWER: 'viewer',
 } as const
+
+export const BOARD_VISIBILITY = {
+    PRIVATE: 'private',
+    WORKSPACE: 'workspace',
+    PUBLIC: 'public',
+} as const
