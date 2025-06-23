@@ -59,3 +59,10 @@ export const BOARD_VISIBILITY = {
     WORKSPACE: 'workspace',
     PUBLIC: 'public',
 } as const
+
+export const BOARD_ROLE = {
+    OWNER: 'owner',
+    ADMIN: 'admin',
+    MEMBER: 'member',
+    VIEWER: 'viewer'
+} as const
