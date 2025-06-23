@@ -65,6 +65,7 @@ export const workspaceList = new Elysia()
                 return status('OK', {
                     data: data.map(member => {
                         const { workspace } = member
+
                         return {
                             id: workspace.id,
                             name: workspace.name,

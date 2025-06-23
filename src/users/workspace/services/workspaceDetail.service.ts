@@ -32,12 +32,10 @@ export const workspaceDetail = new Elysia()
             })
 
             if (!member) {
-                return {
-                    error: {
-                        code: ERROR_CODES.WORKSPACE.FORBIDDEN,
-                        message: 'You are not a member of this workspace or workspace does not exist'
-                    }
-                }
+                return status('Forbidden', {
+                    code: ERROR_CODES.WORKSPACE.FORBIDDEN,
+                    message: 'You are not a member of this workspace or workspace does not exist'
+                })
             }
 
             try {

@@ -47,12 +47,10 @@ export const workspaceInviteMember = new Elysia()
                 where: { workspaceId_userId: { workspaceId, userId: inviterId } }
             })
             if (!inviterMember || (inviterMember.role !== WORKSPACE_ROLES.OWNER && inviterMember.role !== WORKSPACE_ROLES.ADMIN)) {
-                return {
-                    error: {
-                        code: ERROR_CODES.WORKSPACE.FORBIDDEN,
-                        message: 'Only owner or admin can invite members'
-                    }
-                }
+                return status('Forbidden', {
+                    code: ERROR_CODES.WORKSPACE.FORBIDDEN,
+                    message: 'Only owner or admin can invite members'
+                })
             }
 
             let invitedUser = null
