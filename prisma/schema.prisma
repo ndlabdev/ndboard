@@ -14,33 +14,45 @@ datasource db {
 }
 
 model User {
-  id                   String            @id @default(cuid(2))
-  name                 String
-  username             String            @unique @db.VarChar(50)
-  email                String            @unique @db.VarChar(100)
-  password             String?
-  avatarUrl            String?
-  bio                  String?           @db.VarChar(500)
-  isActive             Boolean           @default(true)
-  isVerified           Boolean           @default(false)
-  isBanned             Boolean           @default(false)
-  banReason            String?           @db.VarChar(255)
-  bannedAt             DateTime?
-  banExpiresAt         DateTime?
-  failedLoginAttempts  Int               @default(0)
-  loginLockedUntil     DateTime?
-  lastLoginAt          DateTime?
-  roleId               String
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-  role                 Role              @relation(fields: [roleId], references: [id])
-  providers            UserProvider[]
-  refreshTokens        RefreshToken[]
-  auditLogs            AuditLog[]
-  securityLogs         UserSecurityLog[]
-  workspacesOwned      Workspace[]       @relation("OwnedWorkspaces")
-  workspaceMemberships WorkspaceMember[] @relation("WorkspaceMemberships")
-  invitedMembers       WorkspaceMember[] @relation("InvitedMembers")
+  id                     String                   @id @default(cuid(2))
+  name                   String
+  username               String                   @unique @db.VarChar(50)
+  email                  String                   @unique @db.VarChar(100)
+  password               String?
+  avatarUrl              String?
+  bio                    String?                  @db.VarChar(500)
+  isActive               Boolean                  @default(true)
+  isVerified             Boolean                  @default(false)
+  isBanned               Boolean                  @default(false)
+  banReason              String?                  @db.VarChar(255)
+  bannedAt               DateTime?
+  banExpiresAt           DateTime?
+  failedLoginAttempts    Int                      @default(0)
+  loginLockedUntil       DateTime?
+  lastLoginAt            DateTime?
+  roleId                 String
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  role                   Role                     @relation(fields: [roleId], references: [id])
+  providers              UserProvider[]
+  refreshTokens          RefreshToken[]
+  auditLogs              AuditLog[]
+  securityLogs           UserSecurityLog[]
+  workspacesOwned        Workspace[]              @relation("OwnedWorkspaces")
+  workspaceMemberships   WorkspaceMember[]        @relation("WorkspaceMemberships")
+  invitedMembers         WorkspaceMember[]        @relation("InvitedMembers")
+  boardOwned             Board[]                  @relation("BoardOwner")
+  boardMembers           BoardMember[]            @relation("BoardMember_User")
+  invitedBoardMembers    BoardMember[]            @relation("BoardMember_InvitedBy")
+  boardFavorites         BoardFavorite[]
+  cardAssignees          CardAssignee[]
+  cardComments           CardComment[]
+  notifications          Notification[]
+  uploadedBoardFiles     BoardAttachment[]
+  uploadedCardFiles      CardAttachment[]
+  checklistItemCompleted ChecklistItemCompleted[]
+  boardActivity          BoardActivity[]
+  cardActivity           CardActivity[]
 
   @@index([isActive])
   @@index([isBanned])
@@ -49,12 +61,11 @@ model User {
 }
 
 model Role {
-  id          String   @id @default(cuid(2))
-  name        String   @unique @db.VarChar(30)
-  description String?  @db.VarChar(200)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  id             String           @id @default(cuid(2))
+  name           String           @unique @db.VarChar(30)
+  description    String?          @db.VarChar(200)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
   users          User[]
   rolePermission RolePermission[]
 }
@@ -139,6 +150,7 @@ model Workspace {
   updatedAt   DateTime          @updatedAt
   owner       User              @relation("OwnedWorkspaces", fields: [ownerId], references: [id])
   members     WorkspaceMember[] @relation("WorkspaceMembers")
+  boards      Board[]
 
   @@unique([ownerId, name])
   @@index([ownerId])
@@ -155,4 +167,280 @@ model WorkspaceMember {
   invitedBy   User?     @relation("InvitedMembers", fields: [invitedById], references: [id])
 
   @@id([workspaceId, userId])
+  @@index([workspaceId])
+  @@index([userId])
+}
+
+model Board {
+  id            String             @id @default(cuid(2))
+  name          String             @db.VarChar(100)
+  description   String?            @db.VarChar(255)
+  workspaceId   String
+  ownerId       String
+  visibility    String
+  coverImageUrl String?            @db.VarChar(255)
+  isTemplate    Boolean            @default(false)
+  isArchived    Boolean            @default(false)
+  order         Int                @default(0)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  workspace     Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner         User               @relation("BoardOwner", fields: [ownerId], references: [id])
+  members       BoardMember[]
+  favorites     BoardFavorite[]
+  lists         List[]
+  labels        BoardLabel[]
+  activities    BoardActivity[]
+  customFields  BoardCustomField[]
+  attachments   BoardAttachment[]
+  Card          Card[]
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+  @@index([ownerId])
+  @@index([visibility])
+}
+
+model BoardMember {
+  boardId     String
+  userId      String
+  role        String
+  invitedById String?
+  joinedAt    DateTime @default(now())
+  board       Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user        User     @relation("BoardMember_User", fields: [userId], references: [id])
+  invitedBy   User?    @relation("BoardMember_InvitedBy", fields: [invitedById], references: [id])
+
+  @@id([boardId, userId])
+  @@index([boardId])
+  @@index([userId])
+}
+
+model BoardFavorite {
+  boardId   String
+  userId    String
+  createdAt DateTime @default(now())
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@id([boardId, userId])
+  @@index([userId])
+  @@index([boardId])
+}
+
+model BoardActivity {
+  id        String   @id @default(cuid(2))
+  boardId   String
+  userId    String
+  action    String   @db.VarChar(50)
+  detail    String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([boardId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model List {
+  id        String   @id @default(cuid(2))
+  boardId   String
+  name      String   @db.VarChar(100)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards     Card[]
+
+  @@index([boardId])
+}
+
+model Card {
+  id                String                 @id @default(cuid(2))
+  listId            String
+  boardId           String
+  name              String                 @db.VarChar(100)
+  description       String?                @db.VarChar(255)
+  order             Int                    @default(0)
+  dueDate           DateTime?
+  isArchived        Boolean                @default(false)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  list              List                   @relation(fields: [listId], references: [id], onDelete: Cascade)
+  board             Board                  @relation(fields: [boardId], references: [id])
+  labels            CardLabel[]
+  checklists        Checklist[]
+  attachments       CardAttachment[]
+  comments          CardComment[]
+  activities        CardActivity[]
+  assignees         CardAssignee[]
+  customFieldValues CardCustomFieldValue[]
+
+  @@index([boardId])
+  @@index([listId])
+  @@index([order])
+}
+
+model BoardLabel {
+  id      String      @id @default(cuid(2))
+  boardId String
+  name    String      @db.VarChar(50)
+  color   String      @db.VarChar(20)
+  board   Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards   CardLabel[]
+
+  @@unique([boardId, name])
+  @@index([boardId])
+}
+
+model CardLabel {
+  cardId  String
+  labelId String
+  card    Card       @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  label   BoardLabel @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([cardId, labelId])
+  @@index([cardId])
+  @@index([labelId])
+}
+
+model Checklist {
+  id        String          @id @default(cuid(2))
+  cardId    String
+  title     String          @db.VarChar(100)
+  order     Int             @default(0)
+  createdAt DateTime        @default(now())
+  card      Card            @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  items     ChecklistItem[]
+
+  @@index([cardId])
+}
+
+model ChecklistItem {
+  id          String                   @id @default(cuid(2))
+  checklistId String
+  name        String                   @db.VarChar(100)
+  isChecked   Boolean                  @default(false)
+  order       Int                      @default(0)
+  checklist   Checklist                @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  completedBy ChecklistItemCompleted[]
+
+  @@index([checklistId])
+}
+
+model ChecklistItemCompleted {
+  checklistItemId String
+  userId          String
+  completedAt     DateTime      @default(now())
+  checklistItem   ChecklistItem @relation(fields: [checklistItemId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id])
+
+  @@id([checklistItemId, userId])
+  @@index([userId])
+}
+
+model CardAttachment {
+  id           String   @id @default(cuid(2))
+  cardId       String
+  url          String   @db.VarChar(255)
+  name         String   @db.VarChar(100)
+  uploadedById String
+  createdAt    DateTime @default(now())
+  card         Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+
+  @@index([cardId])
+}
+
+model CardActivity {
+  id        String   @id @default(cuid(2))
+  cardId    String
+  userId    String
+  action    String   @db.VarChar(50)
+  detail    String?  @db.VarChar(255)
+  createdAt DateTime @default(now())
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([cardId])
+  @@index([userId])
+}
+
+model CardAssignee {
+  cardId     String
+  userId     String
+  assignedAt DateTime @default(now())
+  card       Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@id([cardId, userId])
+  @@index([userId])
+}
+
+model CardComment {
+  id        String   @id @default(cuid(2))
+  cardId    String
+  userId    String
+  content   String   @db.VarChar(1000)
+  createdAt DateTime @default(now())
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([cardId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model BoardCustomField {
+  id      String                 @id @default(cuid(2))
+  boardId String
+  name    String                 @db.VarChar(100)
+  type    String                 @db.VarChar(30)
+  options Json?
+  order   Int                    @default(0)
+  board   Board                  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  values  CardCustomFieldValue[]
+
+  @@unique([boardId, name])
+  @@index([boardId])
+}
+
+model CardCustomFieldValue {
+  id                 String           @id @default(cuid(2))
+  cardId             String
+  boardCustomFieldId String
+  value              String           @db.VarChar(255)
+  card               Card             @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  boardCustomField   BoardCustomField @relation(fields: [boardCustomFieldId], references: [id], onDelete: Cascade)
+
+  @@unique([cardId, boardCustomFieldId])
+  @@index([cardId])
+}
+
+model BoardAttachment {
+  id           String   @id @default(cuid(2))
+  boardId      String
+  url          String   @db.VarChar(255)
+  name         String   @db.VarChar(100)
+  uploadedById String
+  createdAt    DateTime @default(now())
+  board        Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+
+  @@index([boardId])
+}
+
+model Notification {
+  id        String   @id @default(cuid(2))
+  userId    String
+  type      String   @db.VarChar(50)
+  content   String   @db.VarChar(255)
+  isRead    Boolean  @default(false)
+  meta      Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([isRead])
 }
