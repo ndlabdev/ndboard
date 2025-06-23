@@ -1,8 +1,5 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
-
-// ** Models Imports
-import { workspaceModels } from '../workspace.model';
+import { Elysia, t } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
@@ -15,9 +12,11 @@ import { ERROR_CODES } from '@constants/errorCodes';
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth';
 
+// ** Types Imports
+import { paginationType } from '@src/types/core.type';
+
 export const workspaceMemberList = new Elysia()
     .use(authUserPlugin)
-    .use(workspaceModels)
     .get(
         '/:workspaceId/members',
         async ({ status, query, params, user }) => {
@@ -106,7 +105,11 @@ export const workspaceMemberList = new Elysia()
             }
         },
         {
-            query: 'workspaceMemberSearch',
+            query: t.Object({
+                ...paginationType,
+                search: t.Optional(t.String({ maxLength: 100 })),
+                role: t.Optional(t.Enum(WORKSPACE_ROLES))
+            }),
             detail: {
                 tags: ['Workspace'],
                 summary: 'Get workspace members',

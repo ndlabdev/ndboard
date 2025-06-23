@@ -1,8 +1,5 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
-
-// ** Models Imports
-import { workspaceModels } from '../workspace.model';
+import { Elysia, t } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
@@ -16,7 +13,6 @@ import { authUserPlugin } from '@src/users/plugins/auth';
 
 export const workspaceCreate = new Elysia()
     .use(authUserPlugin)
-    .use(workspaceModels)
     .post(
         '/',
         async ({ status, body, user }) => {
@@ -60,7 +56,10 @@ export const workspaceCreate = new Elysia()
             }
         },
         {
-            body: 'workspaceCreate',
+            body: t.Object({
+                name: t.String({ minLength: 1, maxLength: 100 }),
+                description: t.Optional(t.String({ maxLength: 255 }))
+            }),
             detail: {
                 tags: ['Workspace'],
                 summary: 'Create a new workspace',

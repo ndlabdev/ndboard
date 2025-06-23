@@ -1,5 +1,5 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia, t } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
@@ -8,14 +8,10 @@ import prisma from '@db';
 import { AUDIT_ACTION, HASH_PASSWORD, ROLE } from '@constants';
 import { ERROR_CODES } from '@constants/errorCodes';
 
-// ** Models Imports
-import { authModels } from '../auth.model';
-
 // ** Helpers Imports
 import { generateUsername } from '@helpers/utils';
 
 export const authRegister = new Elysia()
-    .use(authModels)
     .post(
         '/register',
         async ({ body, status }) => {
@@ -83,7 +79,17 @@ export const authRegister = new Elysia()
             })
         },
         {
-            body: 'authRegister',
+            body: t.Object({
+                name: t.String({ minLength: 2 }),
+                email: t.String({
+                    minLength: 1,
+                    format: 'email'
+                }),
+                password: t.String({
+                    minLength: 6,
+                    maxLength: 20
+                })
+            }),
             detail: {
                 tags: ['Auth'],
                 summary: 'Register new user',

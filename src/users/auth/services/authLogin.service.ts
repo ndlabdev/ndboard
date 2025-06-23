@@ -1,14 +1,11 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia, t } from 'elysia';
 
 // ** NodeJS Imports
 import crypto from 'crypto';
 
 // ** Prisma Imports
 import prisma from '@db';
-
-// ** Models Imports
-import { authModels } from '../auth.model';
 
 // ** Constants Imports
 import { AUDIT_ACTION, HASH_PASSWORD, JWT } from '@constants';
@@ -19,7 +16,6 @@ import { ERROR_CODES } from '@constants/errorCodes';
 import { jwtUserPlugin } from '@src/users/plugins/jwt';
 
 export const authLogin = new Elysia()
-    .use(authModels)
     .use(jwtUserPlugin)
     .post(
         '/login',
@@ -162,7 +158,16 @@ export const authLogin = new Elysia()
             })
         },
         {
-            body: 'authLogin',
+            body: t.Object({
+                email: t.String({
+                    minLength: 1,
+                    format: 'email'
+                }),
+                password: t.String({
+                    minLength: 6,
+                    maxLength: 20
+                })
+            }),
             detail: {
                 tags: ['Auth'],
                 summary: 'User Login with Email & Password',

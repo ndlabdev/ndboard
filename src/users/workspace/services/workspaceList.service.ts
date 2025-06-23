@@ -1,8 +1,5 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
-
-// ** Models Imports
-import { workspaceModels } from '../workspace.model';
+import { Elysia, t } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
@@ -14,9 +11,11 @@ import { PAGE, WORKSPACE_ROLES } from '@constants';
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth';
 
+// ** Types Imports
+import { paginationType } from '@src/types/core.type';
+
 export const workspaceList = new Elysia()
     .use(authUserPlugin)
-    .use(workspaceModels)
     .get(
         '/',
         async ({ status, query, user }) => {
@@ -90,7 +89,20 @@ export const workspaceList = new Elysia()
             }
         },
         {
-            query: 'workspaceSearch',
+            query: t.Object({
+                ...paginationType,
+                name: t.Optional(t.String({ maxLength: 100 })),
+                role: t.Optional(t.Enum(WORKSPACE_ROLES)),
+                sortBy: t.Optional(t.Union([
+                    t.Literal('joinedAt'),
+                    t.Literal('name'),
+                    t.Literal('createdAt')
+                ], { default: 'joinedAt' })),
+                order: t.Optional(t.Union([
+                    t.Literal('asc'),
+                    t.Literal('desc')
+                ], { default: 'desc' }))
+            }),
             detail: {
                 tags: ['Workspace'],
                 summary: 'Get paginated workspace list with filter, search, sort',

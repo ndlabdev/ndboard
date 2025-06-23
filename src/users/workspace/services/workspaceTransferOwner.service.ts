@@ -1,11 +1,8 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia, t } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
-
-// ** Models Imports
-import { workspaceModels } from '../workspace.model';
 
 // ** Constants Imports
 import { WORKSPACE_ROLES } from '@constants';
@@ -16,7 +13,6 @@ import { authUserPlugin } from '@src/users/plugins/auth';
 
 export const workspaceTransferOwner = new Elysia()
     .use(authUserPlugin)
-    .use(workspaceModels)
     .delete(
         '/:workspaceId/transfer-owner',
         async ({ status, body, params, user }) => {
@@ -98,7 +94,9 @@ export const workspaceTransferOwner = new Elysia()
             }
         },
         {
-            body: 'workspaceTransferOwner',
+            body: t.Object({
+                newOwnerId: t.String({ minLength: 1 })
+            }),
             detail: {
                 tags: ['Workspace'],
                 summary: 'Transfer workspace ownership',

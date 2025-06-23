@@ -1,8 +1,5 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
-
-// ** Models Imports
-import { workspaceModels } from '../workspace.model';
+import { Elysia, t } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
@@ -16,7 +13,6 @@ import { authUserPlugin } from '@src/users/plugins/auth';
 
 export const workspaceInviteMember = new Elysia()
     .use(authUserPlugin)
-    .use(workspaceModels)
     .post(
         '/:workspaceId/invite',
         async ({ status, body, params, user }) => {
@@ -124,7 +120,14 @@ export const workspaceInviteMember = new Elysia()
             })
         },
         {
-            body: 'workspaceInviteMember',
+            body: t.Object({
+                email: t.String({
+                    minLength: 1,
+                    format: 'email'
+                }),
+                userId: t.Optional(t.String()),
+                role: t.Optional(t.Enum(WORKSPACE_ROLES))
+            }),
             detail: {
                 tags: ['Workspace'],
                 summary: 'Get workspace members',

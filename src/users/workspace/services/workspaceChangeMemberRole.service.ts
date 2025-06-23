@@ -1,8 +1,5 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
-
-// ** Models Imports
-import { workspaceModels } from '../workspace.model';
+import { Elysia, t } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
@@ -16,7 +13,6 @@ import { authUserPlugin } from '@src/users/plugins/auth';
 
 export const workspaceChangeMemberRole = new Elysia()
     .use(authUserPlugin)
-    .use(workspaceModels)
     .patch(
         '/:workspaceId/members/:userId/role',
         async ({ status, params, body, user }) => {
@@ -111,7 +107,9 @@ export const workspaceChangeMemberRole = new Elysia()
             }
         },
         {
-            body: 'workspaceChangeMemberRole',
+            body: t.Object({
+                role: t.Optional(t.Enum(WORKSPACE_ROLES))
+            }),
             detail: {
                 tags: ['Workspace'],
                 summary: 'Change role of workspace member',
