@@ -10,10 +10,10 @@ import { ERROR_CODES } from '@constants/errorCodes';
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth';
 
-export const boardDelete = new Elysia()
+export const boardArchive = new Elysia()
     .use(authUserPlugin)
-    .delete(
-        '/:boardId',
+    .patch(
+        '/:boardId/archive',
         async ({ status, params, user, server, request, headers }) => {
             const { boardId } = params
             const userId = user.id
@@ -37,40 +37,52 @@ export const boardDelete = new Elysia()
                 })
             }
 
+            // Do not archive if already archived
+            if (board.isArchived) {
+                return status('Conflict', {
+                    code: ERROR_CODES.BOARD.ALREADY_ARCHIVED,
+                    message: 'Board is already archived'
+                })
+            }
+
             try {
-                // Delete the board and related logs atomically
-                const deletedBoard = await prisma.board.delete({
-                    where: { id: boardId }
+                // Archive the board and set archivedAt
+                const archivedBoard = await prisma.board.update({
+                    where: { id: boardId },
+                    data: {
+                        isArchived: true,
+                        archivedAt: new Date(),
+                        updatedById: userId
+                    }
                 })
 
                 await prisma.$transaction([
-                    prisma.board.delete({
-                        where: { id: boardId }
-                    }),
-                    // Create an audit log for deleting the board
+                    // Create audit log and board activity for archiving the board
                     prisma.auditLog.create({
                         data: {
                             userId,
-                            action: 'BOARD_DELETE',
-                            description: `Deleted board "${board.name}" (id: ${boardId})`,
+                            action: 'BOARD_ARCHIVE',
+                            description: `Archived board "${board.name}" (id: ${boardId})`,
                             ipAddress: server?.requestIP(request)?.address,
                             userAgent: headers['user-agent'] || ''
                         }
                     }),
-                    // Create a board activity log for deleting the board
+                    // Create a board activity log for archived the board
                     prisma.boardActivity.create({
                         data: {
                             boardId,
                             userId,
-                            action: 'delete',
-                            detail: `Deleted board "${board.name}"`
+                            action: 'archive',
+                            detail: `Archived board "${board.name}"`
                         }
                     })
                 ])
 
                 return status('OK', {
                     data: {
-                        id: deletedBoard.id
+                        id: archivedBoard.id,
+                        isArchived: archivedBoard.isArchived,
+                        archivedAt: archivedBoard.archivedAt
                     }
                 })
             } catch (error) {
@@ -80,8 +92,8 @@ export const boardDelete = new Elysia()
         {
             detail: {
                 tags: ['Board'],
-                summary: 'Delete board',
-                description: 'Delete a board by ID. Only the board owner can delete a board. All associated resources (lists, cards, etc.) will be deleted as well.'
+                summary: 'Archive board',
+                description: 'Soft-delete (archive) a board by ID. Only the board owner can archive a board. Archived boards can be restored later.'
             }
         },
     )

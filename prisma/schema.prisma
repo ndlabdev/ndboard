@@ -185,6 +185,7 @@ model Board {
   coverImageUrl String?            @db.VarChar(255)
   isTemplate    Boolean            @default(false)
   isArchived    Boolean            @default(false)
+  archivedAt    DateTime?
   order         Int                @default(0)
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
