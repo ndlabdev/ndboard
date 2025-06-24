@@ -1,87 +1,103 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia, t } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
-import { MemberRole } from '@prisma/client';
 
 // ** Constants Imports
 import { ERROR_CODES } from '@constants/errorCodes';
-
-// ** Models Imports
-import { listModels } from '../list.model';
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth';
 
 export const listCreate = new Elysia()
     .use(authUserPlugin)
-    .use(listModels)
     .post(
         '/',
         async ({ body, status, user }) => {
-            if (!user?.id) {
-                return status('Unauthorized', {
-                    code: ERROR_CODES.UNAUTHORIZED,
-                    message: 'User must be authenticated'
-                })
-            }
+            const { name, boardId } = body
+            const userId = user.id
 
-            const { boardId, name, position } = body
-
+            // Check if board exists
             const board = await prisma.board.findUnique({
                 where: { id: boardId },
-                include: { members: true }
+                include: {
+                    workspace: {
+                        include: {
+                            members: true
+                        }
+                    }
+                }
             })
-
             if (!board) {
                 return status('Not Found', {
-                    code: ERROR_CODES.BOARD_NOT_FOUND,
+                    code: ERROR_CODES.BOARD.NOT_FOUND,
                     message: 'Board does not exist'
                 })
             }
 
-            // Verify if user is a valid board member
-            const member = board.members.find((m) => m.userId === user.id)
-
-            function isGuestOrObserver(role: MemberRole | undefined): boolean {
-                return role === MemberRole.GUEST || role === MemberRole.OBSERVER;
+            // Check if user is a member of the board's workspace
+            const isMember = board.workspace.members.some(m => m.userId === userId)
+            if (!isMember) {
+                return status('Forbidden', {
+                    code: ERROR_CODES.WORKSPACE.FORBIDDEN,
+                    message: 'You are not a member of this workspace'
+                })
             }
 
-            if (!member || isGuestOrObserver(member.role)) {
-                return status('Forbidden', {
-                    code: ERROR_CODES.FORBIDDEN,
-                    message: 'You are not allowed to create list in this board'
+            // Check for duplicate list name in the same board (optional, business logic)
+            const existingList = await prisma.list.findFirst({
+                where: { name, boardId }
+            })
+            if (existingList) {
+                return status('Conflict', {
+                    code: ERROR_CODES.LIST.NAME_EXISTS,
+                    message: 'A list with this name already exists in the board'
                 })
             }
 
             try {
-                // Determine list position if not provided
-                let finalPosition = position
-                if (finalPosition === undefined) {
-                    const maxPosition = await prisma.list.aggregate({
-                        where: { boardId },
-                        _max: { position: true }
-                    })
+                // Get the highest current order in this board
+                const maxOrder = await prisma.list.aggregate({
+                    where: { boardId },
+                    _max: { order: true }
+                })
+                const nextOrder = (maxOrder._max.order ?? 0) + 1
 
-                    finalPosition = (maxPosition._max.position ?? 0) + 1
-                }
-
-                // Create new list
+                // Create the new list
                 const newList = await prisma.list.create({
                     data: {
-                        boardId,
                         name,
-                        position: finalPosition
+                        boardId,
+                        order: nextOrder,
+                        createdById: userId,
+                        updatedById: userId,
                     }
                 })
 
-                return status('Created', { newList })
+                return status('Created', {
+                    data: {
+                        id: newList.id,
+                        name: newList.name,
+                        boardId: newList.boardId,
+                        order: newList.order,
+                        createdAt: newList.createdAt,
+                        updatedAt: newList.updatedAt
+                    }
+                })
             } catch (error) {
                 return status('Internal Server Error', error)
             }
         },
         {
-            body: 'listCreate'
+            body: t.Object({
+                name: t.String({ minLength: 1, maxLength: 100 }),
+                boardId: t.String({ minLength: 1 }),
+            }),
+            detail: {
+                tags: ['List'],
+                summary: 'Create a new list',
+                description: 'Create a new list in a board. The list will be placed at the end. Only members with permission can create a list.',
+            },
         }
     )

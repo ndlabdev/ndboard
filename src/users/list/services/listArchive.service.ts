@@ -1,5 +1,5 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
@@ -10,13 +10,12 @@ import { ERROR_CODES } from '@constants/errorCodes';
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth';
 
-export const listUpdate = new Elysia()
+export const listArchive = new Elysia()
     .use(authUserPlugin)
     .patch(
-        '/:listId',
-        async ({ status, params, body, user }) => {
+        '/:listId/archive',
+        async ({ params, status, user }) => {
             const { listId } = params
-            const { name, order } = body
             const userId = user.id
 
             // Check if list exists
@@ -48,61 +47,44 @@ export const listUpdate = new Elysia()
                 })
             }
 
-            // Check for duplicate list name in the same board
-            if (name && name !== list.name) {
-                const nameExists = await prisma.list.findFirst({
-                    where: {
-                        boardId: list.boardId,
-                        name,
-                        NOT: { id: listId }
-                    }
+            if (list.isArchived) {
+                return status('Conflict', {
+                    code: ERROR_CODES.LIST.ALREADY_ARCHIVED,
+                    message: 'List has already been archived',
                 })
-                if (nameExists) {
-                    return status('Conflict', {
-                        code: ERROR_CODES.LIST.NAME_EXISTS,
-                        message: 'A list with this name already exists in the board',
-                    })
-                }
             }
 
             try {
-                // Prepare update data
-                const updateData: typeof body & { updatedById: string } = {
-                    updatedById: userId
-                }
-
-                if (name) updateData.name = name
-                if (typeof order === 'number') updateData.order = order
-
-                // Update list
+                // Archive the list (soft delete)
                 const updatedList = await prisma.list.update({
                     where: { id: listId },
-                    data: updateData
+                    data: {
+                        isArchived: true,
+                        archivedAt: new Date(),
+                        updatedById: userId
+                    }
                 })
+
+                // archive all cards in this list (like Trello)
+                // await prisma.card.updateMany({
+                //     where: { listId: id },
+                //     data: { isArchived: true }
+                // })
 
                 return status('OK', {
                     data: {
                         id: updatedList.id,
-                        name: updatedList.name,
-                        boardId: updatedList.boardId,
-                        order: updatedList.order,
-                        createdAt: updatedList.createdAt,
-                        updatedAt: updatedList.updatedAt
-                    },
+                    }
                 })
             } catch (error) {
                 return status('Internal Server Error', error)
             }
         },
         {
-            body: t.Object({
-                name: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
-                order: t.Optional(t.Integer())
-            }),
             detail: {
                 tags: ['List'],
-                summary: 'Update a list',
-                description: 'Update a list’s name or order. User must be a member of the board’s workspace. List name must be unique within the board.'
-            }
-        },
+                summary: 'Archive a list',
+                description: 'Archive (soft delete) a list and all its cards. User must be a member of the board’s workspace.'
+            },
+        }
     )

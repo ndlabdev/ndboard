@@ -3,77 +3,70 @@ import { Elysia } from 'elysia';
 
 // ** Prisma Imports
 import prisma from '@db';
-import { MemberRole } from '@prisma/client';
 
 // ** Constants Imports
 import { ERROR_CODES } from '@constants/errorCodes';
-
-// ** Models Imports
-import { listModels } from '../list.model';
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth';
 
 export const listDelete = new Elysia()
     .use(authUserPlugin)
-    .use(listModels)
     .delete(
         '/:listId',
-        async ({ params, status, user }) => {
-            if (!user?.id) {
-                return status('Unauthorized', {
-                    code: ERROR_CODES.UNAUTHORIZED,
-                    message: 'User must be authenticated'
-                })
-            }
-
+        async ({ status, params, user }) => {
             const { listId } = params
+            const userId = user.id
 
+            // Check if list exists
             const list = await prisma.list.findUnique({
                 where: { id: listId },
                 include: {
                     board: {
                         include: {
-                            members: true
+                            workspace: {
+                                include: { members: true }
+                            }
                         }
                     }
                 }
             })
-
             if (!list) {
                 return status('Not Found', {
-                    code: ERROR_CODES.LIST_NOT_FOUND,
-                    message: 'List does not exist'
+                    code: ERROR_CODES.LIST.NOT_FOUND,
+                    message: 'List does not exist',
                 })
             }
 
-            // Verify if user is a valid board member
-            const member = list.board.members.find((m) => m.userId === user.id)
-
-            function isGuestOrObserver(role: MemberRole | undefined): boolean {
-                return role === MemberRole.GUEST || role === MemberRole.OBSERVER;
-            }
-
-            if (!member || isGuestOrObserver(member.role)) {
+            // Check permission: must be member of workspace
+            const isMember = list.board.workspace.members.some(m => m.userId === userId)
+            if (!isMember) {
                 return status('Forbidden', {
-                    code: ERROR_CODES.FORBIDDEN,
-                    message: 'You are not allowed to update this list'
+                    code: ERROR_CODES.WORKSPACE.FORBIDDEN,
+                    message: 'You are not a member of this workspace',
                 })
             }
 
-            // Check if already archived
-            if (list.archivedAt !== null) {
-                return status('Conflict', {
-                    code: ERROR_CODES.LIST_ALREADY_ARCHIVED,
-                    message: 'This list has already been archived'
+            try {
+                // Delete list and all child entities (cards, etc) - cascade handled by Prisma schema
+                const deletedList = await prisma.list.delete({
+                    where: { id: listId }
                 })
-            }
 
-            return await prisma.list.update({
-                where: { id: listId },
-                data: {
-                    archivedAt: new Date()
-                }
-            })
-        }
+                return status('OK', {
+                    data: {
+                        id: deletedList.id,
+                    },
+                })
+            } catch (error) {
+                return status('Internal Server Error', error)
+            }
+        },
+        {
+            detail: {
+                tags: ['List'],
+                summary: 'Delete a list',
+                description: 'Delete a list by id. User must be a member of the board’s workspace. All child entities (cards, checklist, etc.) will also be deleted by cascade.'
+            }
+        },
     )

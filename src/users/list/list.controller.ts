@@ -3,16 +3,16 @@ import { Elysia } from 'elysia'
 
 // ** Service Imports
 import {
+    listArchive,
     listCreate,
     listDelete,
-    listReorder,
-    listUnarchive,
-    listUpdate
+    listGetByBoard,
+    listUpdate,
 } from './list.service'
 
-export const listController = new Elysia({ prefix: '/list' })
+export const listController = new Elysia({ prefix: '/lists' })
     .use(listCreate)
+    .use(listGetByBoard)
     .use(listUpdate)
     .use(listDelete)
-    .use(listUnarchive)
-    .use(listReorder)
+    .use(listArchive)
