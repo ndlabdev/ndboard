@@ -1,19 +1,19 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
-import { Prisma } from '@prisma/client';
+import prisma from '@db'
+import { Prisma } from '@prisma/client'
 
 // ** Constants Imports
-import { PAGE } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { PAGE } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 // ** Types Imports
-import { paginationType } from '@src/types/core.type';
+import { paginationType } from '@src/types/core.type'
 
 export const boardList = new Elysia()
     .use(authUserPlugin)
@@ -51,7 +51,7 @@ export const boardList = new Elysia()
             const take = pageSize || undefined
 
             const search: Prisma.BoardWhereInput = {
-                workspaceId,
+                workspaceId
             }
 
             try {
@@ -85,12 +85,12 @@ export const boardList = new Elysia()
         {
             query: t.Object({
                 ...paginationType,
-                workspaceId: t.String(),
+                workspaceId: t.String()
             }),
             detail: {
                 tags: ['Board'],
                 summary: 'Get list of boards in workspace',
                 description: 'Retrieve all boards within a specific workspace. User must be a member of the workspace. Supports pagination.'
-            },
+            }
         }
     )

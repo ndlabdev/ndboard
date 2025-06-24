@@ -1,14 +1,14 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { ERROR_CODES } from '@constants/errorCodes';
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const authLogout = new Elysia()
     .use(authUserPlugin)

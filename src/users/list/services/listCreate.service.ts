@@ -1,14 +1,14 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { ERROR_CODES } from '@constants/errorCodes';
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const listCreate = new Elysia()
     .use(authUserPlugin)
@@ -71,7 +71,7 @@ export const listCreate = new Elysia()
                         boardId,
                         order: nextOrder,
                         createdById: userId,
-                        updatedById: userId,
+                        updatedById: userId
                     }
                 })
 
@@ -92,12 +92,12 @@ export const listCreate = new Elysia()
         {
             body: t.Object({
                 name: t.String({ minLength: 1, maxLength: 100 }),
-                boardId: t.String({ minLength: 1 }),
+                boardId: t.String({ minLength: 1 })
             }),
             detail: {
                 tags: ['List'],
                 summary: 'Create a new list',
-                description: 'Create a new list in a board. The list will be placed at the end. Only members with permission can create a list.',
-            },
+                description: 'Create a new list in a board. The list will be placed at the end. Only members with permission can create a list.'
+            }
         }
     )

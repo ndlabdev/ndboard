@@ -1,18 +1,18 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
-import { Prisma } from '@prisma/client';
+import prisma from '@db'
+import { Prisma } from '@prisma/client'
 
 // ** Constants Imports
-import { PAGE, WORKSPACE_ROLES } from '@constants';
+import { PAGE, WORKSPACE_ROLES } from '@constants'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 // ** Types Imports
-import { paginationType } from '@src/types/core.type';
+import { paginationType } from '@src/types/core.type'
 
 export const workspaceList = new Elysia()
     .use(authUserPlugin)
@@ -31,7 +31,7 @@ export const workspaceList = new Elysia()
                 workspace: {
                     name: query.name
                         ? { contains: query.name, mode: 'insensitive' }
-                        : undefined,
+                        : undefined
                 }
             }
 
@@ -108,5 +108,5 @@ export const workspaceList = new Elysia()
                 summary: 'Get paginated workspace list with filter, search, sort',
                 description: 'Return all workspaces the user belongs to, with filter, search, and sort support'
             }
-        },
+        }
     )

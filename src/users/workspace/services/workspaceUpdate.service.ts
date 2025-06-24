@@ -1,21 +1,21 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { ERROR_CODES } from '@constants/errorCodes';
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const workspaceUpdate = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/:workspaceId',
         async ({ status, params, body, user }) => {
-            const { name, description } = body;
+            const { name, description } = body
             const workspaceId = params.workspaceId
             const userId = user.id
 
@@ -59,7 +59,7 @@ export const workspaceUpdate = new Elysia()
                     data: {
                         name,
                         description
-                    },
+                    }
                 })
 
                 return status('OK', {
@@ -79,5 +79,5 @@ export const workspaceUpdate = new Elysia()
                 summary: 'Update workspace info',
                 description: 'Only workspace owner can update name, description'
             }
-        },
+        }
     )

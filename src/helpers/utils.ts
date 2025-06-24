@@ -1,5 +1,5 @@
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 export async function generateUsername(name: string, email: string): Promise<string> {
     let base = name

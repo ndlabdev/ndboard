@@ -1,19 +1,19 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
-import { Prisma } from '@prisma/client';
+import prisma from '@db'
+import { Prisma } from '@prisma/client'
 
 // ** Constants Imports
-import { PAGE, WORKSPACE_ROLES } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { PAGE, WORKSPACE_ROLES } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 // ** Types Imports
-import { paginationType } from '@src/types/core.type';
+import { paginationType } from '@src/types/core.type'
 
 export const workspaceMemberList = new Elysia()
     .use(authUserPlugin)
@@ -115,5 +115,5 @@ export const workspaceMemberList = new Elysia()
                 summary: 'Get workspace members',
                 description: 'Get all members of a workspace, with search and filter'
             }
-        },
+        }
     )

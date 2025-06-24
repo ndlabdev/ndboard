@@ -60,7 +60,7 @@ export const userTableList = new Elysia()
                             isActive: true,
                             isBanned: true,
                             createdAt: true,
-                            updatedAt: true,
+                            updatedAt: true
                         }
                     }),
                     prisma.user.count({
@@ -103,7 +103,7 @@ export const userRetrieve = new Elysia()
                         isBanned: true,
                         bannedAt: true,
                         createdAt: true,
-                        updatedAt: true,
+                        updatedAt: true
                     }
                 })
 
@@ -139,7 +139,7 @@ export const userUpdate = new Elysia()
                         isBanned: true,
                         bannedAt: true,
                         createdAt: true,
-                        updatedAt: true,
+                        updatedAt: true
                     }
                 })
             } catch (error) {
@@ -176,7 +176,7 @@ export const userBan = new Elysia()
                         isBanned: true,
                         bannedAt: true,
                         createdAt: true,
-                        updatedAt: true,
+                        updatedAt: true
                     }
                 })
             } catch (error) {

@@ -1,19 +1,19 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
-import { Prisma } from '@prisma/client';
+import prisma from '@db'
+import { Prisma } from '@prisma/client'
 
 // ** Constants Imports
-import { BOARD_ROLE, PAGE } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { BOARD_ROLE, PAGE } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 // ** Types Imports
-import { paginationType } from '@src/types/core.type';
+import { paginationType } from '@src/types/core.type'
 
 export const boardGetBoardMember = new Elysia()
     .use(authUserPlugin)
@@ -73,7 +73,7 @@ export const boardGetBoardMember = new Elysia()
             const take = pageSize || undefined
 
             const search: Prisma.BoardMemberWhereInput = {
-                boardId,
+                boardId
             }
 
             try {
@@ -134,6 +134,6 @@ export const boardGetBoardMember = new Elysia()
                 tags: ['Board'],
                 summary: 'Get list of board members',
                 description: 'Retrieve a list of all members of the board, including owner and their roles. Only board members or owner can view this list.'
-            },
+            }
         }
     )

@@ -1,11 +1,11 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia } from 'elysia'
 
 // ** Controllers Imports
-import { authController } from './auth/auth.controller';
-import { boardController } from './board/board.controller';
-import { listController } from './list/list.controller';
-import { workspaceController } from './workspace/workspace.controller';
+import { authController } from './auth/auth.controller'
+import { boardController } from './board/board.controller'
+import { listController } from './list/list.controller'
+import { workspaceController } from './workspace/workspace.controller'
 
 export const users = new Elysia({ prefix: '/api/users' })
     .use(authController)

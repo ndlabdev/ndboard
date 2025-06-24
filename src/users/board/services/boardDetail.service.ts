@@ -1,15 +1,15 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { BOARD_VISIBILITY } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { BOARD_VISIBILITY } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const boardDetail = new Elysia()
     .use(authUserPlugin)
@@ -67,7 +67,7 @@ export const boardDetail = new Elysia()
                         id: workspace.id,
                         name: workspace.name
                     }
-                },
+                }
             })
         },
         {
@@ -76,5 +76,5 @@ export const boardDetail = new Elysia()
                 summary: 'Get board detail',
                 description: 'Retrieve detail information of a board by its ID. User must be a workspace member or board must be public.'
             }
-        },
+        }
     )

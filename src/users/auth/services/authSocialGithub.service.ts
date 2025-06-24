@@ -1,23 +1,23 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
-import { oauth2 } from 'elysia-oauth2';
+import { Elysia } from 'elysia'
+import { oauth2 } from 'elysia-oauth2'
 
 // ** NodeJS Imports
-import crypto from 'crypto';
+import crypto from 'crypto'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { AUDIT_ACTION, JWT, ROLE } from '@constants';
-import { PROVIDER } from '@constants/auth';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { AUDIT_ACTION, JWT, ROLE } from '@constants'
+import { PROVIDER } from '@constants/auth'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { jwtUserPlugin } from '@src/users/plugins/jwt';
+import { jwtUserPlugin } from '@src/users/plugins/jwt'
 
 // ** Helpers Imports
-import { generateUsername } from '@helpers/utils';
+import { generateUsername } from '@helpers/utils'
 
 export const authSocialGithub = new Elysia()
     .use(jwtUserPlugin)
@@ -26,15 +26,15 @@ export const authSocialGithub = new Elysia()
             GitHub: [
                 Bun.env.GITHUB_CLIENT_ID!,
                 Bun.env.GITHUB_CLIENT_SECRET!,
-                Bun.env.GITHUB_CALLBACK_URL!,
-            ],
+                Bun.env.GITHUB_CALLBACK_URL!
+            ]
         })
     )
     .get(
         '/github',
         async ({ oauth2, status }) => {
-            const url = oauth2.createURL('GitHub', ['user:email']);
-            url.searchParams.set('access_type', 'offline');
+            const url = oauth2.createURL('GitHub', ['user:email'])
+            url.searchParams.set('access_type', 'offline')
 
             return status('OK', {
                 data: {
@@ -46,22 +46,22 @@ export const authSocialGithub = new Elysia()
             detail: {
                 tags: ['Auth', 'OAuth', 'Github'],
                 summary: 'Get Github OAuth2 Authorization URL',
-                description: 'Generate and return the Github OAuth2 authorization URL for user to start the OAuth login/registration flow. Client should redirect user to this URL.',
+                description: 'Generate and return the Github OAuth2 authorization URL for user to start the OAuth login/registration flow. Client should redirect user to this URL.'
             }
         }
     )
     .get('/github/callback', async ({ oauth2, jwtAccessToken, status, cookie, server, request, headers }) => {
         // Get access token from Github
         const now = new Date()
-        const tokens = await oauth2.authorize('GitHub');
-        const oauth2AccessToken = tokens.accessToken();
+        const tokens = await oauth2.authorize('GitHub')
+        const oauth2AccessToken = tokens.accessToken()
 
         // Get user info from Github
         const response = await fetch('https://api.github.com/user', {
             headers: {
-                'Authorization': `Bearer ${oauth2AccessToken}`
+                Authorization: `Bearer ${oauth2AccessToken}`
             }
-        });
+        })
 
         if (!response.ok) {
             return status('Bad Gateway', {
@@ -70,18 +70,18 @@ export const authSocialGithub = new Elysia()
             })
         }
 
-        const profile = await response.json();
+        const profile = await response.json()
 
-        let email = profile.email;
+        let email = profile.email
 
         if (!email) {
             const emailsRes = await fetch('https://api.github.com/user/emails', {
                 headers: { Authorization: `Bearer ${oauth2AccessToken}` }
-            });
+            })
 
-            const emails = await emailsRes.json();
-            const primary = emails.find((e: { primary: boolean, verified: boolean }) => e.primary && e.verified);
-            email = primary?.email;
+            const emails = await emailsRes.json()
+            const primary = emails.find((e: { primary: boolean, verified: boolean }) => e.primary && e.verified)
+            email = primary?.email
         }
 
         // Validate minimal required info
@@ -194,7 +194,7 @@ export const authSocialGithub = new Elysia()
             data: {
                 userId: user.id,
                 token: refreshToken,
-                expiresAt,
+                expiresAt
             }
         })
 
@@ -242,11 +242,11 @@ export const authSocialGithub = new Elysia()
             }
         })
     },
-        {
-            detail: {
-                tags: ['Auth', 'OAuth', 'Github'],
-                summary: 'Github OAuth2 Callback',
-                description: `Handle Github OAuth2 redirect. Exchange code for access token, fetch user's Github profile, register or login user, and return JWT access token plus user profile.`,
-            }
+    {
+        detail: {
+            tags: ['Auth', 'OAuth', 'Github'],
+            summary: 'Github OAuth2 Callback',
+            description: 'Handle Github OAuth2 redirect. Exchange code for access token, fetch user\'s Github profile, register or login user, and return JWT access token plus user profile.'
         }
+    }
     )

@@ -1,15 +1,15 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { WORKSPACE_ROLES } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { WORKSPACE_ROLES } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const workspaceRemoveMember = new Elysia()
     .use(authUserPlugin)
@@ -81,7 +81,7 @@ export const workspaceRemoveMember = new Elysia()
                 })
 
                 return status('OK', {
-                    data: deleted,
+                    data: deleted
                 })
             } catch (error) {
                 return status('Internal Server Error', error)
@@ -93,5 +93,5 @@ export const workspaceRemoveMember = new Elysia()
                 summary: 'Remove member from workspace',
                 description: 'Owner or admin can remove member from workspace'
             }
-        },
+        }
     )

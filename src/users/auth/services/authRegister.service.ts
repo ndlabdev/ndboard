@@ -1,15 +1,15 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { AUDIT_ACTION, HASH_PASSWORD, ROLE } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { AUDIT_ACTION, HASH_PASSWORD, ROLE } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Helpers Imports
-import { generateUsername } from '@helpers/utils';
+import { generateUsername } from '@helpers/utils'
 
 export const authRegister = new Elysia()
     .post(
@@ -61,7 +61,7 @@ export const authRegister = new Elysia()
                     name: true,
                     isVerified: true,
                     role: true,
-                    createdAt: true,
+                    createdAt: true
                 }
             })
 

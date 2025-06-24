@@ -1,14 +1,14 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { ERROR_CODES } from '@constants/errorCodes';
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const boardTransferOwner = new Elysia()
     .use(authUserPlugin)
@@ -65,7 +65,7 @@ export const boardTransferOwner = new Elysia()
             // Lookup user names for current and new owner
             const [currentUser, newOwner] = await Promise.all([
                 prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
-                prisma.user.findUnique({ where: { id: newOwnerId }, select: { name: true } }),
+                prisma.user.findUnique({ where: { id: newOwnerId }, select: { name: true } })
             ])
 
             try {
@@ -123,5 +123,5 @@ export const boardTransferOwner = new Elysia()
                 summary: 'Transfer board ownership',
                 description: 'Transfer ownership of a board to another member of the same workspace. Only the current owner can transfer ownership.'
             }
-        },
+        }
     )

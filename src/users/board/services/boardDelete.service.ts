@@ -1,14 +1,14 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { ERROR_CODES } from '@constants/errorCodes';
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const boardDelete = new Elysia()
     .use(authUserPlugin)
@@ -83,5 +83,5 @@ export const boardDelete = new Elysia()
                 summary: 'Delete board',
                 description: 'Delete a board by ID. Only the board owner can delete a board. All associated resources (lists, cards, etc.) will be deleted as well.'
             }
-        },
+        }
     )

@@ -13,7 +13,7 @@ import {
     boardRemoveMember,
     boardRestore,
     boardTransferOwner,
-    boardUpdate,
+    boardUpdate
 } from './board.service'
 
 export const boardController = new Elysia({ prefix: '/boards' })

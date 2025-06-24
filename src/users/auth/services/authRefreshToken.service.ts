@@ -1,18 +1,18 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia } from 'elysia'
 
 // ** NodeJS Imports
-import crypto from 'crypto';
+import crypto from 'crypto'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { JWT } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { JWT } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { jwtUserPlugin } from '@src/users/plugins/jwt';
+import { jwtUserPlugin } from '@src/users/plugins/jwt'
 
 export const authRefreshToken = new Elysia()
     .use(jwtUserPlugin)

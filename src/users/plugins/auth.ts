@@ -65,7 +65,7 @@ const authUserPlugin = (app: Elysia) =>
                     role: user.role?.name,
                     createdAt: user.createdAt,
                     updatedAt: user.updatedAt
-                },
+                }
             }
         })
 

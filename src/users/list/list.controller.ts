@@ -8,7 +8,7 @@ import {
     listDelete,
     listGetByBoard,
     listRestore,
-    listUpdate,
+    listUpdate
 } from './list.service'
 
 export const listController = new Elysia({ prefix: '/lists' })

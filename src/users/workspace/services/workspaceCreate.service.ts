@@ -1,22 +1,22 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { WORKSPACE_ROLES } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { WORKSPACE_ROLES } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const workspaceCreate = new Elysia()
     .use(authUserPlugin)
     .post(
         '/',
         async ({ status, body, user }) => {
-            const { name, description } = body;
+            const { name, description } = body
 
             // Check for existing workspace with same name and ownerId
             const existed = await prisma.workspace.findFirst({
@@ -41,7 +41,7 @@ export const workspaceCreate = new Elysia()
                         members: {
                             create: [{
                                 userId: user.id,
-                                role: WORKSPACE_ROLES.OWNER,
+                                role: WORKSPACE_ROLES.OWNER
                             }]
                         }
                     },
@@ -65,5 +65,5 @@ export const workspaceCreate = new Elysia()
                 summary: 'Create a new workspace',
                 description: 'Create a new workspace and add current user as owner'
             }
-        },
+        }
     )

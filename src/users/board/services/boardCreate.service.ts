@@ -1,15 +1,15 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { BOARD_VISIBILITY } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { BOARD_VISIBILITY } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const boardCreate = new Elysia()
     .use(authUserPlugin)
@@ -70,7 +70,7 @@ export const boardCreate = new Elysia()
                         boardId: newBoard.id,
                         userId,
                         action: 'create',
-                        detail: `Created board "${name}"`,
+                        detail: `Created board "${name}"`
                     }
                 })
 
@@ -88,14 +88,14 @@ export const boardCreate = new Elysia()
                 workspaceId: t.String(),
                 visibility: t.Optional(
                     t.Enum(BOARD_VISIBILITY, {
-                        default: BOARD_VISIBILITY.PRIVATE,
+                        default: BOARD_VISIBILITY.PRIVATE
                     })
-                ),
+                )
             }),
             detail: {
                 tags: ['Board'],
                 summary: 'Create a new board',
                 description: 'Create a new board in a specific workspace. User must be a member of the workspace. Board name must be unique within the workspace.'
-            },
+            }
         }
     )

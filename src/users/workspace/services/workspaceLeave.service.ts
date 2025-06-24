@@ -1,15 +1,15 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { WORKSPACE_ROLES } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { WORKSPACE_ROLES } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const workspaceLeave = new Elysia()
     .use(authUserPlugin)
@@ -84,5 +84,5 @@ export const workspaceLeave = new Elysia()
                 summary: 'Leave workspace',
                 description: 'Member/admin can leave workspace (owner must transfer ownership first)'
             }
-        },
+        }
     )

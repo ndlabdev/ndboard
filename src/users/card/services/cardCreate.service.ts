@@ -1,18 +1,18 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
-import { MemberRole } from '@prisma/client';
+import prisma from '@db'
+import { MemberRole } from '@prisma/client'
 
 // ** Constants Imports
-import { ERROR_CODES } from '@constants/errorCodes';
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Models Imports
-import { cardModels } from '../card.model';
+import { cardModels } from '../card.model'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const cardCreate = new Elysia()
     .use(authUserPlugin)
@@ -84,7 +84,7 @@ export const cardCreate = new Elysia()
                         listId,
                         order: newOrder,
                         dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
-                        createdBy: user.id,
+                        createdBy: user.id
                     },
                     include: {
                         labels: true,

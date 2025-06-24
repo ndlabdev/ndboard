@@ -1,22 +1,22 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { BOARD_VISIBILITY } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { BOARD_VISIBILITY } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const boardUpdate = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/:boardId',
         async ({ status, params, body, user }) => {
-            const { name, description, visibility } = body;
+            const { name, description, visibility } = body
             const { boardId } = params
             const userId = user.id
 
@@ -67,7 +67,7 @@ export const boardUpdate = new Elysia()
                         description,
                         visibility,
                         updatedById: userId
-                    },
+                    }
                 })
 
                 return status('OK', {
@@ -88,5 +88,5 @@ export const boardUpdate = new Elysia()
                 summary: 'Update board',
                 description: 'Update board information (name, description, visibility). Only board owner can update.'
             }
-        },
+        }
     )

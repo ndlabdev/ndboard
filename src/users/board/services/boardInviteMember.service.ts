@@ -1,15 +1,15 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { BOARD_ROLE } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { BOARD_ROLE } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const boardInviteMember = new Elysia()
     .use(authUserPlugin)
@@ -134,5 +134,5 @@ export const boardInviteMember = new Elysia()
                 summary: 'Invite member to board',
                 description: 'Invite a workspace member to join the board. Only the board owner can invite. Activity and audit logs are created for each invite.'
             }
-        },
+        }
     )

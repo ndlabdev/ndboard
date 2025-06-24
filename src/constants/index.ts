@@ -19,7 +19,7 @@ export const ADMIN_ACTIONS = {
     LOGIN_FAIL_LOCKED: 'LOGIN_FAIL_LOCKED',
     LOGOUT: 'LOGOUT',
     CHANGE_PASSWORD: 'CHANGE_PASSWORD',
-    UPDATE_PROFILE: 'UPDATE_PROFILE',
+    UPDATE_PROFILE: 'UPDATE_PROFILE'
 } as const
 
 export const ADMIN_TARGET_TYPES = {
@@ -51,13 +51,13 @@ export const WORKSPACE_ROLES = {
     OWNER: 'owner',
     ADMIN: 'admin',
     MEMBER: 'member',
-    VIEWER: 'viewer',
+    VIEWER: 'viewer'
 } as const
 
 export const BOARD_VISIBILITY = {
     PRIVATE: 'private',
     WORKSPACE: 'workspace',
-    PUBLIC: 'public',
+    PUBLIC: 'public'
 } as const
 
 export const BOARD_ROLE = {

@@ -1,15 +1,15 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia';
+import { Elysia } from 'elysia'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { BOARD_ROLE } from '@constants';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { BOARD_ROLE } from '@constants'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { authUserPlugin } from '@src/users/plugins/auth';
+import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const boardRemoveMember = new Elysia()
     .use(authUserPlugin)
@@ -131,5 +131,5 @@ export const boardRemoveMember = new Elysia()
                 summary: 'Remove member from board',
                 description: 'Remove a member from the board by ID. Only the board owner or admin can remove members. Cannot remove the board owner.'
             }
-        },
+        }
     )

@@ -1,19 +1,19 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia';
+import { Elysia, t } from 'elysia'
 
 // ** NodeJS Imports
-import crypto from 'crypto';
+import crypto from 'crypto'
 
 // ** Prisma Imports
-import prisma from '@db';
+import prisma from '@db'
 
 // ** Constants Imports
-import { AUDIT_ACTION, HASH_PASSWORD, JWT } from '@constants';
-import { AUTH_SECURITY } from '@constants/auth';
-import { ERROR_CODES } from '@constants/errorCodes';
+import { AUDIT_ACTION, HASH_PASSWORD, JWT } from '@constants'
+import { AUTH_SECURITY } from '@constants/auth'
+import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
-import { jwtUserPlugin } from '@src/users/plugins/jwt';
+import { jwtUserPlugin } from '@src/users/plugins/jwt'
 
 export const authLogin = new Elysia()
     .use(jwtUserPlugin)

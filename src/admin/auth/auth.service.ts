@@ -129,7 +129,7 @@ export const authLogin = new Elysia()
                 data: {
                     userId: user.id,
                     token: refreshToken,
-                    expiredAt,
+                    expiredAt
                 }
             })
 
@@ -171,7 +171,7 @@ export const authLogin = new Elysia()
                     id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role,
+                    role: user.role
                 }
             })
         },
