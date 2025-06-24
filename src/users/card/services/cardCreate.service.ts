@@ -1,35 +1,26 @@
 // ** Elysia Imports
-import { Elysia } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
-import { MemberRole } from '@prisma/client'
 
 // ** Constants Imports
 import { ERROR_CODES } from '@constants/errorCodes'
-
-// ** Models Imports
-import { cardModels } from '../card.model'
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const cardCreate = new Elysia()
     .use(authUserPlugin)
-    .use(cardModels)
     .post(
         '/',
         async({ body, status, user }) => {
-            if (!user?.id) {
-                return status('Unauthorized', {
-                    code: ERROR_CODES.UNAUTHORIZED,
-                    message: 'User must be authenticated'
-                })
-            }
+            const { listId, name, description, dueDate, labels, assignees, customFields } = body
+            const userId = user.id
 
-            const { title, listId, description } = body
-
-            // Check list exists and get list with board info
+            // Find list and check permissions
             const list = await prisma.list.findUnique({
                 where: {
                     id: listId
@@ -37,75 +28,146 @@ export const cardCreate = new Elysia()
                 include: {
                     board: {
                         include: {
-                            members: true
+                            members: true,
+                            workspace: {
+                                include: {
+                                    members: true
+                                }
+                            }
                         }
                     }
                 }
             })
-
             if (!list) {
                 return status('Not Found', {
-                    code: ERROR_CODES.LIST_NOT_FOUND,
+                    code: ERROR_CODES.LIST.NOT_FOUND,
                     message: 'List does not exist'
                 })
             }
 
-            // Check board archived
-            if (list.board.archivedAt) {
-                return status('Conflict', {
-                    code: ERROR_CODES.BOARD_ARCHIVED,
-                    message: 'Board has been archived'
-                })
-            }
-
-            // Check permission: must be board member
-            const isMember = list.board.members.some(
-                (m) => m.userId === user.id && m.role !== MemberRole.OBSERVER
-            )
-
-            if (!isMember) {
+            // Check if user is member of board or workspace
+            const isBoardMember = list.board.members.some((m) => m.userId === userId)
+            const isWorkspaceMember = list.board.workspace.members.some((m) => m.userId === userId)
+            if (!isBoardMember && !isWorkspaceMember) {
                 return status('Forbidden', {
-                    code: ERROR_CODES.PERMISSION_DENIED,
-                    message: 'You do not have permission to add cards to this list'
+                    code: ERROR_CODES.BOARD.FORBIDDEN,
+                    message: 'You are not a member of this board or its workspace'
                 })
             }
 
-            // calc order card
-            const maxOrder = await prisma.card.aggregate({
-                where: {
-                    listId: body.listId
-                },
-                _max: {
-                    order: true
-                }
-            })
-
-            const newOrder = (maxOrder._max.order ?? 0) + 1
+            // Check if list or board is archived
+            if (list.isArchived || list.board.isArchived) {
+                return status('Conflict', {
+                    code: ERROR_CODES.LIST.ARCHIVED,
+                    message: 'Cannot add card to archived list or board'
+                })
+            }
 
             try {
-                const card = await prisma.card.create({
-                    data: {
-                        title,
-                        description,
-                        listId,
-                        order: newOrder,
-                        dueDate: body.dueDate ? new Date(body.dueDate) : undefined,
-                        createdBy: user.id
+                // Calculate order if not provided (add to end)
+                const maxOrderCard = await prisma.card.findFirst({
+                    where: {
+                        listId
                     },
-                    include: {
-                        labels: true,
-                        list: true
+                    orderBy: {
+                        order: 'desc'
                     }
+                })
+                const nextOrder = maxOrderCard ? maxOrderCard.order + 1 : 1
+
+                // Transaction: create card + optional labels, assignees, customFields
+                const result = await prisma.$transaction(async(tx) => {
+                    // Create card
+                    const card = await tx.card.create({
+                        data: {
+                            listId,
+                            boardId: list.boardId,
+                            name,
+                            description,
+                            dueDate: dueDate ? new Date(dueDate) : undefined,
+                            order: nextOrder
+                        }
+                    })
+
+                    // Add labels if any
+                    if (Array.isArray(labels) && labels.length > 0) {
+                        await tx.cardLabel.createMany({
+                            data: labels.map((labelId: string) => ({
+                                cardId: card.id,
+                                labelId
+                            })),
+                            skipDuplicates: true
+                        })
+                    }
+
+                    // Add assignees if any
+                    if (Array.isArray(assignees) && assignees.length > 0) {
+                        await tx.cardAssignee.createMany({
+                            data: assignees.map((userId: string) => ({
+                                cardId: card.id,
+                                userId
+                            })),
+                            skipDuplicates: true
+                        })
+                    }
+
+                    // Add customFields if any
+                    if (Array.isArray(customFields) && customFields.length > 0) {
+                        await tx.cardCustomFieldValue.createMany({
+                            data: customFields.map((cf: { boardCustomFieldId: string; value: string }) => ({
+                                cardId: card.id,
+                                boardCustomFieldId: cf.boardCustomFieldId,
+                                value: cf.value
+                            })),
+                            skipDuplicates: true
+                        })
+                    }
+
+                    // Log board activity
+                    await tx.boardActivity.create({
+                        data: {
+                            boardId: list.boardId,
+                            userId,
+                            action: 'create_card',
+                            detail: `Created card "${name}" in list "${list.name}"`
+                        }
+                    })
                 })
 
                 return status('Created', {
-                    card
+                    data: result
                 })
             } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
         {
-            body: 'cardCreate'
+            body: t.Object({
+                listId: t.String({
+                    minLength: 1
+                }),
+                name: t.String({
+                    minLength: 1, maxLength: 100
+                }),
+                description: t.Optional(t.String({
+                    maxLength: 255
+                })),
+                dueDate: t.Optional(t.String({
+                    format: 'date-time'
+                })),
+                labels: t.Optional(t.Array(t.String())),
+                assignees: t.Optional(t.Array(t.String())),
+                customFields: t.Optional(t.Array(
+                    t.Object({
+                        boardCustomFieldId: t.String(),
+                        value: t.String()
+                    })
+                ))
+            }),
+            detail: {
+                tags: ['Card'],
+                summary: 'Create a new card',
+                description: 'Create a new card in a list. User must be a member of the board or workspace. Handles labels, assignees, custom fields, and logs activity.'
+            }
         }
     )
