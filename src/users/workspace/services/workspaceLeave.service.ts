@@ -15,13 +15,15 @@ export const workspaceLeave = new Elysia()
     .use(authUserPlugin)
     .post(
         '/:workspaceId/leave',
-        async ({ status, params, user }) => {
+        async({ status, params, user }) => {
             const { workspaceId } = params
             const userId = user.id
 
             // Check workspace existence
             const workspace = await prisma.workspace.findUnique({
-                where: { id: workspaceId }
+                where: {
+                    id: workspaceId
+                }
             })
             if (!workspace) {
                 return status('Not Found', {
@@ -58,7 +60,9 @@ export const workspaceLeave = new Elysia()
                 // Remove member
                 const removeMember = await prisma.workspaceMember.delete({
                     where: {
-                        workspaceId_userId: { workspaceId, userId }
+                        workspaceId_userId: {
+                            workspaceId, userId
+                        }
                     }
                 })
 
@@ -74,7 +78,7 @@ export const workspaceLeave = new Elysia()
                 return status('OK', {
                     data: removeMember
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

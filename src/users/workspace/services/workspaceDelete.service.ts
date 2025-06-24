@@ -14,13 +14,15 @@ export const workspaceDelete = new Elysia()
     .use(authUserPlugin)
     .delete(
         '/:workspaceId',
-        async ({ status, params, user }) => {
+        async({ status, params, user }) => {
             const workspaceId = params.workspaceId
             const userId = user.id
 
             // Find the workspace and check if user is owner
             const workspace = await prisma.workspace.findUnique({
-                where: { id: workspaceId }
+                where: {
+                    id: workspaceId
+                }
             })
             if (!workspace) {
                 return status('Not Found', {
@@ -37,13 +39,15 @@ export const workspaceDelete = new Elysia()
 
             try {
                 const deleted = await prisma.workspace.delete({
-                    where: { id: workspaceId }
+                    where: {
+                        id: workspaceId
+                    }
                 })
 
                 return status('OK', {
                     data: deleted
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

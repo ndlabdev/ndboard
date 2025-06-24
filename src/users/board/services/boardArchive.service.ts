@@ -14,13 +14,15 @@ export const boardArchive = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/:boardId/archive',
-        async ({ status, params, user, server, request, headers }) => {
+        async({ status, params, user, server, request, headers }) => {
             const { boardId } = params
             const userId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
-                where: { id: boardId }
+                where: {
+                    id: boardId
+                }
             })
             if (!board) {
                 return status('Not Found', {
@@ -48,7 +50,9 @@ export const boardArchive = new Elysia()
             try {
                 // Archive the board and set archivedAt
                 const archivedBoard = await prisma.board.update({
-                    where: { id: boardId },
+                    where: {
+                        id: boardId
+                    },
                     data: {
                         isArchived: true,
                         archivedAt: new Date(),
@@ -85,7 +89,7 @@ export const boardArchive = new Elysia()
                         archivedAt: archivedBoard.archivedAt
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

@@ -14,9 +14,13 @@ export const loginType = t.Object({
 })
 
 export const refreshTokenType = t.Object({
-    refreshToken: t.String({ minLength: 1 })
+    refreshToken: t.String({
+        minLength: 1
+    })
 })
 
 export const logoutType = t.Object({
-    refreshToken: t.String({ minLength: 1 })
+    refreshToken: t.String({
+        minLength: 1
+    })
 })

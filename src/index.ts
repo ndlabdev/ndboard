@@ -7,13 +7,20 @@ import { Elysia } from 'elysia'
 import { admin } from './admin'
 import { users } from './users'
 
-const app = new Elysia({ normalize: true })
+const app = new Elysia({
+    normalize: true
+})
     .use(swagger())
     .use(
         cors({
             credentials: true,
             origin: [Bun.env.USER_URL!],
-            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+            methods: ['GET',
+                'POST',
+                'PUT',
+                'DELETE',
+                'OPTIONS',
+                'PATCH'],
             allowedHeaders: ['Content-Type', 'Authorization']
         })
     )

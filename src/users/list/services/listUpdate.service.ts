@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -14,19 +16,23 @@ export const listUpdate = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/:listId',
-        async ({ status, params, body, user }) => {
+        async({ status, params, body, user }) => {
             const { listId } = params
             const { name, order } = body
             const userId = user.id
 
             // Check if list exists
             const list = await prisma.list.findUnique({
-                where: { id: listId },
+                where: {
+                    id: listId
+                },
                 include: {
                     board: {
                         include: {
                             workspace: {
-                                include: { members: true }
+                                include: {
+                                    members: true
+                                }
                             }
                         }
                     }
@@ -40,7 +46,7 @@ export const listUpdate = new Elysia()
             }
 
             // Check permission: must be member of workspace
-            const isMember = list.board.workspace.members.some(m => m.userId === userId)
+            const isMember = list.board.workspace.members.some((m) => m.userId === userId)
             if (!isMember) {
                 return status('Forbidden', {
                     code: ERROR_CODES.WORKSPACE.FORBIDDEN,
@@ -54,7 +60,9 @@ export const listUpdate = new Elysia()
                     where: {
                         boardId: list.boardId,
                         name,
-                        NOT: { id: listId }
+                        NOT: {
+                            id: listId
+                        }
                     }
                 })
                 if (nameExists) {
@@ -76,7 +84,9 @@ export const listUpdate = new Elysia()
 
                 // Update list
                 const updatedList = await prisma.list.update({
-                    where: { id: listId },
+                    where: {
+                        id: listId
+                    },
                     data: updateData
                 })
 
@@ -90,13 +100,15 @@ export const listUpdate = new Elysia()
                         updatedAt: updatedList.updatedAt
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
         {
             body: t.Object({
-                name: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
+                name: t.Optional(t.String({
+                    minLength: 1, maxLength: 100
+                })),
                 order: t.Optional(t.Integer())
             }),
             detail: {

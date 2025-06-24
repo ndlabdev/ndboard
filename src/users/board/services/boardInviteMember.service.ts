@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -15,14 +17,16 @@ export const boardInviteMember = new Elysia()
     .use(authUserPlugin)
     .post(
         '/:boardId/invite-member',
-        async ({ status, body, params, user, server, request, headers }) => {
+        async({ status, body, params, user, server, request, headers }) => {
             const { boardId } = params
             const { userId: inviteUserId, role } = body
             const currentUserId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
-                where: { id: boardId },
+                where: {
+                    id: boardId
+                },
                 include: {
                     workspace: {
                         include: {
@@ -47,7 +51,7 @@ export const boardInviteMember = new Elysia()
             }
 
             // Check if invite user is a member of workspace
-            const isWorkspaceMember = board.workspace.members.some(member => member.userId === inviteUserId)
+            const isWorkspaceMember = board.workspace.members.some((member) => member.userId === inviteUserId)
             if (!isWorkspaceMember) {
                 return status('Bad Request', {
                     code: ERROR_CODES.WORKSPACE.USER_NOT_FOUND,
@@ -84,8 +88,22 @@ export const boardInviteMember = new Elysia()
 
                 // Lookup names for current user and invited user
                 const [inviter, invited] = await Promise.all([
-                    prisma.user.findUnique({ where: { id: currentUserId }, select: { name: true } }),
-                    prisma.user.findUnique({ where: { id: inviteUserId }, select: { name: true } })
+                    prisma.user.findUnique({
+                        where: {
+                            id: currentUserId
+                        },
+                        select: {
+                            name: true
+                        }
+                    }),
+                    prisma.user.findUnique({
+                        where: {
+                            id: inviteUserId
+                        },
+                        select: {
+                            name: true
+                        }
+                    })
                 ])
 
                 const detail = inviter && invited
@@ -120,7 +138,7 @@ export const boardInviteMember = new Elysia()
                         role
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

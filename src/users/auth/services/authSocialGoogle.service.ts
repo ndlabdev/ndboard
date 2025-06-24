@@ -9,7 +9,9 @@ import crypto from 'crypto'
 import prisma from '@db'
 
 // ** Constants Imports
-import { AUDIT_ACTION, JWT, ROLE } from '@constants'
+import {
+    AUDIT_ACTION, JWT, ROLE
+} from '@constants'
 import { PROVIDER } from '@constants/auth'
 import { ERROR_CODES } from '@constants/errorCodes'
 
@@ -24,15 +26,13 @@ export const authSocialGoogle = new Elysia()
     .use(
         oauth2({
             Google: [
-                Bun.env.GOOGLE_CLIENT_ID!,
-                Bun.env.GOOGLE_CLIENT_SECRET!,
-                Bun.env.GOOGLE_CALLBACK_URL!
+                Bun.env.GOOGLE_CLIENT_ID!, Bun.env.GOOGLE_CLIENT_SECRET!, Bun.env.GOOGLE_CALLBACK_URL!
             ]
         })
     )
     .get(
         '/google',
-        async ({ oauth2, status }) => {
+        async({ oauth2, status }) => {
             const url = oauth2.createURL('Google', ['email', 'profile'])
             url.searchParams.set('access_type', 'offline')
 
@@ -50,7 +50,7 @@ export const authSocialGoogle = new Elysia()
             }
         }
     )
-    .get('/google/callback', async ({ oauth2, jwtAccessToken, status, cookie, server, request, headers }) => {
+    .get('/google/callback', async({ oauth2, jwtAccessToken, status, cookie, server, request, headers }) => {
         // Get access token from Google
         const now = new Date()
         const tokens = await oauth2.authorize('Google')
@@ -102,8 +102,12 @@ export const authSocialGoogle = new Elysia()
         // If not exist, check duplicate email with local user
         if (!user) {
             const existedUser = await prisma.user.findUnique({
-                where: { email: profile.email },
-                include: { role: true }
+                where: {
+                    email: profile.email
+                },
+                include: {
+                    role: true
+                }
             })
             if (existedUser) {
                 return status('Conflict', {
@@ -114,7 +118,9 @@ export const authSocialGoogle = new Elysia()
 
             // Create new user and userProvider
             const defaultRole = await prisma.role.findFirst({
-                where: { name: ROLE.DEFAULT }
+                where: {
+                    name: ROLE.DEFAULT
+                }
             })
             if (!defaultRole) {
                 return status('Not Found', {
@@ -144,11 +150,15 @@ export const authSocialGoogle = new Elysia()
                         }]
                     }
                 },
-                include: { role: true }
+                include: {
+                    role: true
+                }
             })
         } else {
             await prisma.userProvider.update({
-                where: { id: userProvider!.id },
+                where: {
+                    id: userProvider!.id
+                },
                 data: {
                     email: profile.email,
                     name: profile.name,
@@ -200,7 +210,9 @@ export const authSocialGoogle = new Elysia()
 
         // Reset failed login attempts, clear lock
         await prisma.user.update({
-            where: { id: user.id },
+            where: {
+                id: user.id
+            },
             data: {
                 failedLoginAttempts: 0,
                 loginLockedUntil: null,
@@ -237,5 +249,4 @@ export const authSocialGoogle = new Elysia()
             summary: 'Google OAuth2 Callback',
             description: 'Handle Google OAuth2 redirect. Exchange code for access token, fetch user\'s Google profile, register or login user, and return JWT access token plus user profile.'
         }
-    }
-    )
+    })

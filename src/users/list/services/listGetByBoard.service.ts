@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -14,13 +16,15 @@ export const listGetByBoard = new Elysia()
     .use(authUserPlugin)
     .get(
         '/',
-        async ({ query, status, user }) => {
+        async({ query, status, user }) => {
             const { boardId } = query
             const userId = user.id
 
             // Check if board exists, include workspace members for permission check
             const board = await prisma.board.findUnique({
-                where: { id: boardId },
+                where: {
+                    id: boardId
+                },
                 include: {
                     workspace: {
                         include: {
@@ -37,7 +41,7 @@ export const listGetByBoard = new Elysia()
             }
 
             // Check if user is a member of the workspace
-            const isMember = board.workspace.members.some(m => m.userId === userId)
+            const isMember = board.workspace.members.some((m) => m.userId === userId)
             if (!isMember) {
                 return status('Forbidden', {
                     code: ERROR_CODES.WORKSPACE.FORBIDDEN,
@@ -48,12 +52,16 @@ export const listGetByBoard = new Elysia()
             try {
                 // Get all lists by boardId, sorted by order ascending
                 const lists = await prisma.list.findMany({
-                    where: { boardId },
-                    orderBy: { order: 'asc' }
+                    where: {
+                        boardId
+                    },
+                    orderBy: {
+                        order: 'asc'
+                    }
                 })
 
                 return status('OK', {
-                    data: lists.map(list => ({
+                    data: lists.map((list) => ({
                         id: list.id,
                         name: list.name,
                         boardId: list.boardId,
@@ -62,7 +70,7 @@ export const listGetByBoard = new Elysia()
                         updatedAt: list.updatedAt
                     }))
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

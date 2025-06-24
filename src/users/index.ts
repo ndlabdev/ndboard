@@ -7,7 +7,9 @@ import { boardController } from './board/board.controller'
 import { listController } from './list/list.controller'
 import { workspaceController } from './workspace/workspace.controller'
 
-export const users = new Elysia({ prefix: '/api/users' })
+export const users = new Elysia({
+    prefix: '/api/users'
+})
     .use(authController)
     .use(boardController)
     .use(workspaceController)

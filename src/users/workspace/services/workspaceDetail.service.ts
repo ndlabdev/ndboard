@@ -14,7 +14,7 @@ export const workspaceDetail = new Elysia()
     .use(authUserPlugin)
     .get(
         '/:workspaceId',
-        async ({ status, params, user }) => {
+        async({ status, params, user }) => {
             const workspaceId = params.workspaceId
             const userId = user.id
 
@@ -41,7 +41,9 @@ export const workspaceDetail = new Elysia()
             try {
                 // Count the total number of members in this workspace
                 const memberCount = await prisma.workspaceMember.count({
-                    where: { workspaceId }
+                    where: {
+                        workspaceId
+                    }
                 })
 
                 // Return workspace detail with current user's role and join date
@@ -60,7 +62,7 @@ export const workspaceDetail = new Elysia()
                         joinedAt
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

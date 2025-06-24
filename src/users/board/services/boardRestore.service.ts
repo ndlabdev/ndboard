@@ -14,13 +14,15 @@ export const boardRestore = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/:boardId/restore',
-        async ({ status, params, user, server, request, headers }) => {
+        async({ status, params, user, server, request, headers }) => {
             const { boardId } = params
             const userId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
-                where: { id: boardId }
+                where: {
+                    id: boardId
+                }
             })
             if (!board) {
                 return status('Not Found', {
@@ -48,7 +50,9 @@ export const boardRestore = new Elysia()
             try {
                 // Restore the board by setting isArchived to false and clearing archivedAt
                 const restoredBoard = await prisma.board.update({
-                    where: { id: boardId },
+                    where: {
+                        id: boardId
+                    },
                     data: {
                         isArchived: false,
                         archivedAt: null,
@@ -85,7 +89,7 @@ export const boardRestore = new Elysia()
                         archivedAt: restoredBoard.archivedAt
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

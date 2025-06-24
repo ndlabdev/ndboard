@@ -16,7 +16,9 @@ import {
     workspaceUpdate
 } from './workspace.service'
 
-export const workspaceController = new Elysia({ prefix: '/workspace' })
+export const workspaceController = new Elysia({
+    prefix: '/workspace'
+})
     .use(workspaceCreate)
     .use(workspaceDetail)
     .use(workspaceList)

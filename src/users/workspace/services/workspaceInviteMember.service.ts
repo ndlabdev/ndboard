@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -15,7 +17,7 @@ export const workspaceInviteMember = new Elysia()
     .use(authUserPlugin)
     .post(
         '/:workspaceId/invite',
-        async ({ status, body, params, user }) => {
+        async({ status, body, params, user }) => {
             const workspaceId = params.workspaceId
             const inviterId = user.id
             const { role = WORKSPACE_ROLES.MEMBER, email, userId } = body
@@ -29,7 +31,9 @@ export const workspaceInviteMember = new Elysia()
 
             // Check workspace existence
             const workspace = await prisma.workspace.findUnique({
-                where: { id: workspaceId }
+                where: {
+                    id: workspaceId
+                }
             })
             if (!workspace) {
                 return status('Not Found', {
@@ -40,7 +44,11 @@ export const workspaceInviteMember = new Elysia()
 
             // Only owner or admin can invite
             const inviterMember = await prisma.workspaceMember.findUnique({
-                where: { workspaceId_userId: { workspaceId, userId: inviterId } }
+                where: {
+                    workspaceId_userId: {
+                        workspaceId, userId: inviterId
+                    }
+                }
             })
             if (!inviterMember || (inviterMember.role !== WORKSPACE_ROLES.OWNER && inviterMember.role !== WORKSPACE_ROLES.ADMIN)) {
                 return status('Forbidden', {
@@ -54,7 +62,9 @@ export const workspaceInviteMember = new Elysia()
             // Invite by userId
             if (userId) {
                 invitedUser = await prisma.user.findUnique({
-                    where: { id: userId }
+                    where: {
+                        id: userId
+                    }
                 })
                 if (!invitedUser) {
                     return status('Not Found', {
@@ -63,7 +73,11 @@ export const workspaceInviteMember = new Elysia()
                     })
                 }
             } else if (email) {
-                invitedUser = await prisma.user.findUnique({ where: { email } })
+                invitedUser = await prisma.user.findUnique({
+                    where: {
+                        email
+                    }
+                })
             } else {
                 return status('Bad Request', {
                     code: ERROR_CODES.WORKSPACE.USER_NOT_FOUND,

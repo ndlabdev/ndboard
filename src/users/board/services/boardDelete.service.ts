@@ -14,13 +14,15 @@ export const boardDelete = new Elysia()
     .use(authUserPlugin)
     .delete(
         '/:boardId',
-        async ({ status, params, user, server, request, headers }) => {
+        async({ status, params, user, server, request, headers }) => {
             const { boardId } = params
             const userId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
-                where: { id: boardId }
+                where: {
+                    id: boardId
+                }
             })
             if (!board) {
                 return status('Not Found', {
@@ -40,12 +42,16 @@ export const boardDelete = new Elysia()
             try {
                 // Delete the board and related logs atomically
                 const deletedBoard = await prisma.board.delete({
-                    where: { id: boardId }
+                    where: {
+                        id: boardId
+                    }
                 })
 
                 await prisma.$transaction([
                     prisma.board.delete({
-                        where: { id: boardId }
+                        where: {
+                            id: boardId
+                        }
                     }),
                     // Create an audit log for deleting the board
                     prisma.auditLog.create({
@@ -73,7 +79,7 @@ export const boardDelete = new Elysia()
                         id: deletedBoard.id
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

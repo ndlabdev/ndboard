@@ -9,7 +9,9 @@ import prisma from '@db'
 // import { UserRole } from '@prisma/client'
 
 // ** Constants Imports
-import { ADMIN_ACTIONS, ADMIN_TARGET_TYPES, HASH_PASSWORD, JWT } from '@constants'
+import {
+    ADMIN_ACTIONS, ADMIN_TARGET_TYPES, HASH_PASSWORD, JWT
+} from '@constants'
 import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Models Imports
@@ -23,11 +25,13 @@ export const authLogin = new Elysia()
     .use(jwtAdminPlugin)
     .post(
         '/login',
-        async ({ body, status, jwtAccessToken, cookie, server, request, headers }) => {
+        async({ body, status, jwtAccessToken, cookie, server, request, headers }) => {
             const { email, password } = body
 
             const user = await prisma.user.findUnique({
-                where: { email }
+                where: {
+                    email
+                }
             })
 
             if (!user || !user.isActive || user.isBanned) {
@@ -90,7 +94,9 @@ export const authLogin = new Elysia()
                 }
 
                 await prisma.user.update({
-                    where: { id: user.id },
+                    where: {
+                        id: user.id
+                    },
                     data: {
                         loginFailCount: newFailCount,
                         lockedUntil
@@ -134,7 +140,9 @@ export const authLogin = new Elysia()
             })
 
             await prisma.user.update({
-                where: { id: user.id },
+                where: {
+                    id: user.id
+                },
                 data: {
                     loginFailCount: 0,
                     lockedUntil: null,
@@ -185,7 +193,7 @@ export const authRefreshToken = new Elysia()
     .use(jwtAdminPlugin)
     .post(
         '/refresh-token',
-        async ({ body, status, jwtAccessToken }) => {
+        async({ body, status, jwtAccessToken }) => {
             const { refreshToken } = body
 
             if (!refreshToken) {
@@ -196,8 +204,12 @@ export const authRefreshToken = new Elysia()
             }
 
             const tokenDoc = await prisma.refreshToken.findUnique({
-                where: { token: refreshToken },
-                include: { user: true }
+                where: {
+                    token: refreshToken
+                },
+                include: {
+                    user: true
+                }
             })
 
             if (!tokenDoc || tokenDoc.expiredAt < new Date()) {
@@ -240,7 +252,7 @@ export const authLogout = new Elysia()
     .use(jwtAdminPlugin)
     .post(
         '/logout',
-        async ({ body, status, cookie, server, request, headers }) => {
+        async({ body, status, cookie, server, request, headers }) => {
             const { refreshToken } = body
 
             if (!refreshToken) {
@@ -251,8 +263,12 @@ export const authLogout = new Elysia()
             }
 
             const tokenDoc = await prisma.refreshToken.findUnique({
-                where: { token: refreshToken },
-                include: { user: true }
+                where: {
+                    token: refreshToken
+                },
+                include: {
+                    user: true
+                }
             })
 
             if (tokenDoc && tokenDoc.user) {

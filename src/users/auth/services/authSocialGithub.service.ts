@@ -9,7 +9,9 @@ import crypto from 'crypto'
 import prisma from '@db'
 
 // ** Constants Imports
-import { AUDIT_ACTION, JWT, ROLE } from '@constants'
+import {
+    AUDIT_ACTION, JWT, ROLE
+} from '@constants'
 import { PROVIDER } from '@constants/auth'
 import { ERROR_CODES } from '@constants/errorCodes'
 
@@ -24,15 +26,13 @@ export const authSocialGithub = new Elysia()
     .use(
         oauth2({
             GitHub: [
-                Bun.env.GITHUB_CLIENT_ID!,
-                Bun.env.GITHUB_CLIENT_SECRET!,
-                Bun.env.GITHUB_CALLBACK_URL!
+                Bun.env.GITHUB_CLIENT_ID!, Bun.env.GITHUB_CLIENT_SECRET!, Bun.env.GITHUB_CALLBACK_URL!
             ]
         })
     )
     .get(
         '/github',
-        async ({ oauth2, status }) => {
+        async({ oauth2, status }) => {
             const url = oauth2.createURL('GitHub', ['user:email'])
             url.searchParams.set('access_type', 'offline')
 
@@ -50,7 +50,7 @@ export const authSocialGithub = new Elysia()
             }
         }
     )
-    .get('/github/callback', async ({ oauth2, jwtAccessToken, status, cookie, server, request, headers }) => {
+    .get('/github/callback', async({ oauth2, jwtAccessToken, status, cookie, server, request, headers }) => {
         // Get access token from Github
         const now = new Date()
         const tokens = await oauth2.authorize('GitHub')
@@ -76,11 +76,13 @@ export const authSocialGithub = new Elysia()
 
         if (!email) {
             const emailsRes = await fetch('https://api.github.com/user/emails', {
-                headers: { Authorization: `Bearer ${oauth2AccessToken}` }
+                headers: {
+                    Authorization: `Bearer ${oauth2AccessToken}`
+                }
             })
 
             const emails = await emailsRes.json()
-            const primary = emails.find((e: { primary: boolean, verified: boolean }) => e.primary && e.verified)
+            const primary = emails.find((e: { primary: boolean; verified: boolean }) => e.primary && e.verified)
             email = primary?.email
         }
 
@@ -113,8 +115,12 @@ export const authSocialGithub = new Elysia()
 
         if (!user) {
             const existedUser = await prisma.user.findUnique({
-                where: { email: profile.email },
-                include: { role: true }
+                where: {
+                    email: profile.email
+                },
+                include: {
+                    role: true
+                }
             })
             if (existedUser) {
                 return status('Conflict', {
@@ -125,7 +131,9 @@ export const authSocialGithub = new Elysia()
 
             // Create new user and userProvider
             const defaultRole = await prisma.role.findFirst({
-                where: { name: ROLE.DEFAULT }
+                where: {
+                    name: ROLE.DEFAULT
+                }
             })
             if (!defaultRole) {
                 return status('Not Found', {
@@ -155,11 +163,15 @@ export const authSocialGithub = new Elysia()
                         }]
                     }
                 },
-                include: { role: true }
+                include: {
+                    role: true
+                }
             })
         } else {
             await prisma.userProvider.update({
-                where: { id: userProvider!.id },
+                where: {
+                    id: userProvider!.id
+                },
                 data: {
                     email,
                     name: profile.name || profile.login || email,
@@ -211,7 +223,9 @@ export const authSocialGithub = new Elysia()
 
         // Reset failed login attempts, clear lock
         await prisma.user.update({
-            where: { id: user.id },
+            where: {
+                id: user.id
+            },
             data: {
                 failedLoginAttempts: 0,
                 loginLockedUntil: null,
@@ -248,5 +262,4 @@ export const authSocialGithub = new Elysia()
             summary: 'Github OAuth2 Callback',
             description: 'Handle Github OAuth2 redirect. Exchange code for access token, fetch user\'s Github profile, register or login user, and return JWT access token plus user profile.'
         }
-    }
-    )
+    })

@@ -19,7 +19,7 @@ export const cardCreate = new Elysia()
     .use(cardModels)
     .post(
         '/',
-        async ({ body, status, user }) => {
+        async({ body, status, user }) => {
             if (!user?.id) {
                 return status('Unauthorized', {
                     code: ERROR_CODES.UNAUTHORIZED,
@@ -31,7 +31,9 @@ export const cardCreate = new Elysia()
 
             // Check list exists and get list with board info
             const list = await prisma.list.findUnique({
-                where: { id: listId },
+                where: {
+                    id: listId
+                },
                 include: {
                     board: {
                         include: {
@@ -70,8 +72,12 @@ export const cardCreate = new Elysia()
 
             // calc order card
             const maxOrder = await prisma.card.aggregate({
-                where: { listId: body.listId },
-                _max: { order: true }
+                where: {
+                    listId: body.listId
+                },
+                _max: {
+                    order: true
+                }
             })
 
             const newOrder = (maxOrder._max.order ?? 0) + 1
@@ -92,8 +98,10 @@ export const cardCreate = new Elysia()
                     }
                 })
 
-                return status('Created', { card })
-            } catch (error) {
+                return status('Created', {
+                    card
+                })
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

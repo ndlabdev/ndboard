@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** NodeJS Imports
 import crypto from 'crypto'
@@ -8,7 +10,9 @@ import crypto from 'crypto'
 import prisma from '@db'
 
 // ** Constants Imports
-import { AUDIT_ACTION, HASH_PASSWORD, JWT } from '@constants'
+import {
+    AUDIT_ACTION, HASH_PASSWORD, JWT
+} from '@constants'
 import { AUTH_SECURITY } from '@constants/auth'
 import { ERROR_CODES } from '@constants/errorCodes'
 
@@ -19,13 +23,15 @@ export const authLogin = new Elysia()
     .use(jwtUserPlugin)
     .post(
         '/login',
-        async ({ body, status, jwtAccessToken, cookie, server, request, headers }) => {
+        async({ body, status, jwtAccessToken, cookie, server, request, headers }) => {
             const { email, password } = body
             const now = new Date()
 
             // Find user by email
             const user = await prisma.user.findUnique({
-                where: { email },
+                where: {
+                    email
+                },
                 include: {
                     role: true
                 }
@@ -64,9 +70,11 @@ export const authLogin = new Elysia()
             if (!validPassword) {
                 const failedAttempts = user.failedLoginAttempts + 1
                 const updateData: {
-                    failedLoginAttempts?: number
-                    loginLockedUntil?: Date | null
-                } = { failedLoginAttempts: failedAttempts }
+                    failedLoginAttempts?: number;
+                    loginLockedUntil?: Date | null;
+                } = {
+                    failedLoginAttempts: failedAttempts
+                }
 
                 // Lock account if failed too many times
                 if (failedAttempts >= AUTH_SECURITY.MAX_FAILED_ATTEMPTS) {
@@ -76,7 +84,9 @@ export const authLogin = new Elysia()
                 }
 
                 await prisma.user.update({
-                    where: { id: user.id },
+                    where: {
+                        id: user.id
+                    },
                     data: updateData
                 })
 
@@ -99,7 +109,9 @@ export const authLogin = new Elysia()
 
             // Reset failed login attempts, clear lock
             await prisma.user.update({
-                where: { id: user.id },
+                where: {
+                    id: user.id
+                },
                 data: {
                     failedLoginAttempts: 0,
                     loginLockedUntil: null,

@@ -13,7 +13,7 @@ import { ERROR_CODES } from '@constants/errorCodes'
 const authUserPlugin = (app: Elysia) =>
     app
         .use(jwtUserPlugin)
-        .derive(async ({ headers, status, jwtAccessToken }) => {
+        .derive(async({ headers, status, jwtAccessToken }) => {
             const authorization = headers['authorization']
 
             if (!authorization) {
@@ -42,8 +42,12 @@ const authUserPlugin = (app: Elysia) =>
             }
 
             const user = await prismaClient.user.findUnique({
-                where: { id: jwtPayload.userId },
-                include: { role: true }
+                where: {
+                    id: jwtPayload.userId
+                },
+                include: {
+                    role: true
+                }
             })
 
             if (!user || !user.isActive || user.isBanned) {

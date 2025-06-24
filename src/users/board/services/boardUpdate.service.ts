@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -15,14 +17,16 @@ export const boardUpdate = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/:boardId',
-        async ({ status, params, body, user }) => {
+        async({ status, params, body, user }) => {
             const { name, description, visibility } = body
             const { boardId } = params
             const userId = user.id
 
             // Find board and include owner & workspace
             const board = await prisma.board.findUnique({
-                where: { id: boardId },
+                where: {
+                    id: boardId
+                },
                 include: {
                     workspace: true
                 }
@@ -55,13 +59,14 @@ export const boardUpdate = new Elysia()
                         code: ERROR_CODES.BOARD.NAME_EXISTS,
                         message: 'A board with this name already exists in the workspace'
                     })
-
                 }
             }
 
             try {
                 const updated = await prisma.board.update({
-                    where: { id: boardId },
+                    where: {
+                        id: boardId
+                    },
                     data: {
                         name,
                         description,
@@ -73,14 +78,18 @@ export const boardUpdate = new Elysia()
                 return status('OK', {
                     data: updated
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
         {
             body: t.Object({
-                name: t.Optional(t.String({ minLength: 1, maxLength: 100 })),
-                description: t.Optional(t.String({ maxLength: 255 })),
+                name: t.Optional(t.String({
+                    minLength: 1, maxLength: 100
+                })),
+                description: t.Optional(t.String({
+                    maxLength: 255
+                })),
                 visibility: t.Optional(t.Enum(BOARD_VISIBILITY))
             }),
             detail: {

@@ -15,7 +15,7 @@ export const userTableList = new Elysia()
     .use(userModels)
     .get(
         '/',
-        async ({ query, status }) => {
+        async({ query, status }) => {
             try {
                 const page = Number(query.page) || PAGE.CURRENT
                 const pageSize = Number(query.pageSize) || PAGE.SIZE
@@ -77,7 +77,7 @@ export const userTableList = new Elysia()
                         totalPages: Math.ceil(total / pageSize)
                     }
                 }
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
@@ -89,10 +89,12 @@ export const userTableList = new Elysia()
 export const userRetrieve = new Elysia()
     .get(
         '/:id',
-        async ({ params, status }) => {
+        async({ params, status }) => {
             try {
                 const user = await prisma.user.findUnique({
-                    where: { id: params.id },
+                    where: {
+                        id: params.id
+                    },
                     select: {
                         id: true,
                         email: true,
@@ -114,7 +116,7 @@ export const userRetrieve = new Elysia()
                 return {
                     data: user
                 }
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         }
@@ -124,10 +126,12 @@ export const userUpdate = new Elysia()
     .use(userModels)
     .patch(
         '/:id',
-        async ({ params, body, status }) => {
+        async({ params, body, status }) => {
             try {
                 return await prisma.user.update({
-                    where: { id: params.id },
+                    where: {
+                        id: params.id
+                    },
                     data: body,
                     select: {
                         id: true,
@@ -142,7 +146,7 @@ export const userUpdate = new Elysia()
                         updatedAt: true
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
@@ -155,12 +159,14 @@ export const userBan = new Elysia()
     .use(userModels)
     .patch(
         '/:id/ban',
-        async ({ params, body, status }) => {
+        async({ params, body, status }) => {
             const { isBanned, banReason } = body
 
             try {
                 return await prisma.user.update({
-                    where: { id: params.id },
+                    where: {
+                        id: params.id
+                    },
                     data: {
                         isBanned,
                         banReason: isBanned ? banReason : null,
@@ -179,7 +185,7 @@ export const userBan = new Elysia()
                         updatedAt: true
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

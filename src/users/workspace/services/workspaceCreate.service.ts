@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -15,7 +17,7 @@ export const workspaceCreate = new Elysia()
     .use(authUserPlugin)
     .post(
         '/',
-        async ({ status, body, user }) => {
+        async({ status, body, user }) => {
             const { name, description } = body
 
             // Check for existing workspace with same name and ownerId
@@ -45,20 +47,26 @@ export const workspaceCreate = new Elysia()
                             }]
                         }
                     },
-                    include: { members: true }
+                    include: {
+                        members: true
+                    }
                 })
 
                 return status('Created', {
                     data: workspace
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
         {
             body: t.Object({
-                name: t.String({ minLength: 1, maxLength: 100 }),
-                description: t.Optional(t.String({ maxLength: 255 }))
+                name: t.String({
+                    minLength: 1, maxLength: 100
+                }),
+                description: t.Optional(t.String({
+                    maxLength: 255
+                }))
             }),
             detail: {
                 tags: ['Workspace'],

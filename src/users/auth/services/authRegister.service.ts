@@ -1,11 +1,15 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
 
 // ** Constants Imports
-import { AUDIT_ACTION, HASH_PASSWORD, ROLE } from '@constants'
+import {
+    AUDIT_ACTION, HASH_PASSWORD, ROLE
+} from '@constants'
 import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Helpers Imports
@@ -14,12 +18,14 @@ import { generateUsername } from '@helpers/utils'
 export const authRegister = new Elysia()
     .post(
         '/register',
-        async ({ body, status }) => {
+        async({ body, status }) => {
             const { email, name, password } = body
 
             // Check if the email or username is already in use
             const existingUser = await prisma.user.findUnique({
-                where: { email }
+                where: {
+                    email
+                }
             })
             if (existingUser) {
                 return status('Conflict', {
@@ -36,7 +42,9 @@ export const authRegister = new Elysia()
 
             // Retrieve the default user role from database
             const defaultRole = await prisma.role.findFirst({
-                where: { name: ROLE.DEFAULT }
+                where: {
+                    name: ROLE.DEFAULT
+                }
             })
             if (!defaultRole) {
                 return status('Not Found', {
@@ -80,7 +88,9 @@ export const authRegister = new Elysia()
         },
         {
             body: t.Object({
-                name: t.String({ minLength: 2 }),
+                name: t.String({
+                    minLength: 2
+                }),
                 email: t.String({
                     minLength: 1,
                     format: 'email'

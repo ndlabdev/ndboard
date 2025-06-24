@@ -14,7 +14,7 @@ export const authLogout = new Elysia()
     .use(authUserPlugin)
     .post(
         '/logout',
-        async ({ status, user, cookie }) => {
+        async({ status, user, cookie }) => {
             if (!cookie.refreshToken) {
                 return status('Bad Request', {
                     code: ERROR_CODES.AUTH.TOKEN_MISSING,

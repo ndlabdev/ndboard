@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -15,14 +17,18 @@ export const boardCreate = new Elysia()
     .use(authUserPlugin)
     .post(
         '/',
-        async ({ body, status, user }) => {
+        async({ body, status, user }) => {
             const { name, description, workspaceId, visibility } = body
             const userId = user.id
 
             // Check if workspace exists and is active
             const workspace = await prisma.workspace.findUnique({
-                where: { id: workspaceId },
-                include: { members: true }
+                where: {
+                    id: workspaceId
+                },
+                include: {
+                    members: true
+                }
             })
             if (!workspace) {
                 return status('Not Found', {
@@ -42,7 +48,9 @@ export const boardCreate = new Elysia()
 
             // Check for duplicate board name within the same workspace
             const existingBoard = await prisma.board.findFirst({
-                where: { name, workspaceId }
+                where: {
+                    name, workspaceId
+                }
             })
             if (existingBoard) {
                 return status('Conflict', {
@@ -77,14 +85,18 @@ export const boardCreate = new Elysia()
                 return status('Created', {
                     data: newBoard
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
         {
             body: t.Object({
-                name: t.String({ minLength: 1, maxLength: 100 }),
-                description: t.Optional(t.String({ maxLength: 255 })),
+                name: t.String({
+                    minLength: 1, maxLength: 100
+                }),
+                description: t.Optional(t.String({
+                    maxLength: 255
+                })),
                 workspaceId: t.String(),
                 visibility: t.Optional(
                     t.Enum(BOARD_VISIBILITY, {

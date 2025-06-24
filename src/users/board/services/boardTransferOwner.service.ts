@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -14,14 +16,16 @@ export const boardTransferOwner = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/:boardId/transfer-owner',
-        async ({ status, body, params, user, server, request, headers }) => {
+        async({ status, body, params, user, server, request, headers }) => {
             const { boardId } = params
             const { newOwnerId } = body
             const userId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
-                where: { id: boardId },
+                where: {
+                    id: boardId
+                },
                 include: {
                     workspace: {
                         include: {
@@ -54,7 +58,7 @@ export const boardTransferOwner = new Elysia()
             }
 
             // Check if the new owner is a member of the workspace
-            const isMember = board.workspace.members.some(member => member.userId === newOwnerId)
+            const isMember = board.workspace.members.some((member) => member.userId === newOwnerId)
             if (!isMember) {
                 return status('Bad Request', {
                     code: ERROR_CODES.WORKSPACE.USER_NOT_FOUND,
@@ -64,14 +68,30 @@ export const boardTransferOwner = new Elysia()
 
             // Lookup user names for current and new owner
             const [currentUser, newOwner] = await Promise.all([
-                prisma.user.findUnique({ where: { id: userId }, select: { name: true } }),
-                prisma.user.findUnique({ where: { id: newOwnerId }, select: { name: true } })
+                prisma.user.findUnique({
+                    where: {
+                        id: userId
+                    },
+                    select: {
+                        name: true
+                    }
+                }),
+                prisma.user.findUnique({
+                    where: {
+                        id: newOwnerId
+                    },
+                    select: {
+                        name: true
+                    }
+                })
             ])
 
             try {
                 // Update the board owner
                 const updatedBoard = await prisma.board.update({
-                    where: { id: boardId },
+                    where: {
+                        id: boardId
+                    },
                     data: {
                         ownerId: newOwnerId,
                         updatedById: userId
@@ -110,7 +130,7 @@ export const boardTransferOwner = new Elysia()
                         ownerId: updatedBoard.ownerId
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

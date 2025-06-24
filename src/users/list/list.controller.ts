@@ -11,7 +11,9 @@ import {
     listUpdate
 } from './list.service'
 
-export const listController = new Elysia({ prefix: '/lists' })
+export const listController = new Elysia({
+    prefix: '/lists'
+})
     .use(listCreate)
     .use(listGetByBoard)
     .use(listUpdate)

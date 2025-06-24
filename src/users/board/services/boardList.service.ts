@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -19,14 +21,18 @@ export const boardList = new Elysia()
     .use(authUserPlugin)
     .get(
         '/',
-        async ({ query, status, user }) => {
+        async({ query, status, user }) => {
             const { workspaceId } = query
             const userId = user.id
 
             // Check if workspace exists and is active
             const workspace = await prisma.workspace.findUnique({
-                where: { id: workspaceId },
-                include: { members: true }
+                where: {
+                    id: workspaceId
+                },
+                include: {
+                    members: true
+                }
             })
             if (!workspace) {
                 return status('Not Found', {
@@ -78,7 +84,7 @@ export const boardList = new Elysia()
                         totalPages: Math.ceil(total / pageSize)
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

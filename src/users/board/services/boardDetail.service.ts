@@ -15,13 +15,15 @@ export const boardDetail = new Elysia()
     .use(authUserPlugin)
     .get(
         '/:boardId',
-        async ({ status, params, user }) => {
+        async({ status, params, user }) => {
             const { boardId } = params
             const userId = user.id
 
             // Find board and include owner & workspace
             const board = await prisma.board.findUnique({
-                where: { id: boardId },
+                where: {
+                    id: boardId
+                },
                 include: {
                     owner: {
                         select: {
@@ -46,7 +48,7 @@ export const boardDetail = new Elysia()
             }
 
             // Check permission: user must be member of workspace or board is public
-            const isWorkspaceMember = board.workspace.members.some(m => m.userId === userId)
+            const isWorkspaceMember = board.workspace.members.some((m) => m.userId === userId)
             const isBoardPublic = board.visibility === BOARD_VISIBILITY.PUBLIC
 
             if (!isBoardPublic && !isWorkspaceMember) {

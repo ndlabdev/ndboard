@@ -9,7 +9,9 @@ import {
     userUpdate
 } from './user.service'
 
-export const userController = new Elysia({ prefix: '/users' })
+export const userController = new Elysia({
+    prefix: '/users'
+})
     .use(userBan)
     .use(userRetrieve)
     .use(userTableList)

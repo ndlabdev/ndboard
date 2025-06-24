@@ -15,13 +15,15 @@ export const workspaceRemoveMember = new Elysia()
     .use(authUserPlugin)
     .delete(
         '/:workspaceId/members/:userId',
-        async ({ status, params, user }) => {
+        async({ status, params, user }) => {
             const { workspaceId, userId: targetUserId } = params
             const operatorId = user.id
 
             // Check workspace existence
             const workspace = await prisma.workspace.findUnique({
-                where: { id: workspaceId }
+                where: {
+                    id: workspaceId
+                }
             })
             if (!workspace) {
                 return status('Not Found', {
@@ -83,7 +85,7 @@ export const workspaceRemoveMember = new Elysia()
                 return status('OK', {
                     data: deleted
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

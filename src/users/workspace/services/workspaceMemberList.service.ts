@@ -1,12 +1,16 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
 import { Prisma } from '@prisma/client'
 
 // ** Constants Imports
-import { PAGE, WORKSPACE_ROLES } from '@constants'
+import {
+    PAGE, WORKSPACE_ROLES
+} from '@constants'
 import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
@@ -19,7 +23,7 @@ export const workspaceMemberList = new Elysia()
     .use(authUserPlugin)
     .get(
         '/:workspaceId/members',
-        async ({ status, query, params, user }) => {
+        async({ status, query, params, user }) => {
             const workspaceId = params.workspaceId
             const userId = user.id
 
@@ -51,8 +55,16 @@ export const workspaceMemberList = new Elysia()
                 user: query.search
                     ? {
                         OR: [
-                            { name: { contains: query.search, mode: 'insensitive' } },
-                            { email: { contains: query.search, mode: 'insensitive' } }
+                            {
+                                name: {
+                                    contains: query.search, mode: 'insensitive'
+                                }
+                            },
+                            {
+                                email: {
+                                    contains: query.search, mode: 'insensitive'
+                                }
+                            }
                         ]
                     }
                     : undefined
@@ -78,7 +90,7 @@ export const workspaceMemberList = new Elysia()
                 ])
 
                 return status('OK', {
-                    data: data.map(member => ({
+                    data: data.map((member) => ({
                         id: member.user.id,
                         name: member.user.name,
                         email: member.user.email,
@@ -100,14 +112,16 @@ export const workspaceMemberList = new Elysia()
                         totalPages: Math.ceil(total / pageSize)
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
         {
             query: t.Object({
                 ...paginationType,
-                search: t.Optional(t.String({ maxLength: 100 })),
+                search: t.Optional(t.String({
+                    maxLength: 100
+                })),
                 role: t.Optional(t.Enum(WORKSPACE_ROLES))
             }),
             detail: {

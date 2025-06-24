@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -15,14 +17,16 @@ export const workspaceTransferOwner = new Elysia()
     .use(authUserPlugin)
     .delete(
         '/:workspaceId/transfer-owner',
-        async ({ status, body, params, user }) => {
+        async({ status, body, params, user }) => {
             const { workspaceId } = params
             const { newOwnerId } = body
             const operatorId = user.id
 
             // Check workspace existence
             const workspace = await prisma.workspace.findUnique({
-                where: { id: workspaceId }
+                where: {
+                    id: workspaceId
+                }
             })
             if (!workspace) {
                 return status('Not Found', {
@@ -66,16 +70,32 @@ export const workspaceTransferOwner = new Elysia()
             try {
                 await prisma.$transaction([
                     prisma.workspace.update({
-                        where: { id: workspaceId },
-                        data: { ownerId: newOwnerId }
+                        where: {
+                            id: workspaceId
+                        },
+                        data: {
+                            ownerId: newOwnerId
+                        }
                     }),
                     prisma.workspaceMember.update({
-                        where: { workspaceId_userId: { workspaceId, userId: operatorId } },
-                        data: { role: WORKSPACE_ROLES.ADMIN }
+                        where: {
+                            workspaceId_userId: {
+                                workspaceId, userId: operatorId
+                            }
+                        },
+                        data: {
+                            role: WORKSPACE_ROLES.ADMIN
+                        }
                     }),
                     prisma.workspaceMember.update({
-                        where: { workspaceId_userId: { workspaceId, userId: newOwnerId } },
-                        data: { role: WORKSPACE_ROLES.OWNER }
+                        where: {
+                            workspaceId_userId: {
+                                workspaceId, userId: newOwnerId
+                            }
+                        },
+                        data: {
+                            role: WORKSPACE_ROLES.OWNER
+                        }
                     }),
                     prisma.auditLog.create({
                         data: {
@@ -89,13 +109,15 @@ export const workspaceTransferOwner = new Elysia()
                 return status('OK', {
                     message: 'Transfer Owner Successfully'
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
         {
             body: t.Object({
-                newOwnerId: t.String({ minLength: 1 })
+                newOwnerId: t.String({
+                    minLength: 1
+                })
             }),
             detail: {
                 tags: ['Workspace'],

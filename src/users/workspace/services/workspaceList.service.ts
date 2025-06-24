@@ -1,12 +1,16 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
 import { Prisma } from '@prisma/client'
 
 // ** Constants Imports
-import { PAGE, WORKSPACE_ROLES } from '@constants'
+import {
+    PAGE, WORKSPACE_ROLES
+} from '@constants'
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
@@ -18,7 +22,7 @@ export const workspaceList = new Elysia()
     .use(authUserPlugin)
     .get(
         '/',
-        async ({ status, query, user }) => {
+        async({ status, query, user }) => {
             const page = Number(query.page) || PAGE.CURRENT
             const pageSize = Number(query.pageSize) || PAGE.SIZE
 
@@ -30,7 +34,9 @@ export const workspaceList = new Elysia()
                 role: query.role && Object.values(WORKSPACE_ROLES).includes(query.role) ? query.role : undefined,
                 workspace: {
                     name: query.name
-                        ? { contains: query.name, mode: 'insensitive' }
+                        ? {
+                            contains: query.name, mode: 'insensitive'
+                        }
                         : undefined
                 }
             }
@@ -62,7 +68,7 @@ export const workspaceList = new Elysia()
                 ])
 
                 return status('OK', {
-                    data: data.map(member => {
+                    data: data.map((member) => {
                         const { workspace } = member
 
                         return {
@@ -84,24 +90,27 @@ export const workspaceList = new Elysia()
                         totalPages: Math.ceil(total / pageSize)
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
         {
             query: t.Object({
                 ...paginationType,
-                name: t.Optional(t.String({ maxLength: 100 })),
+                name: t.Optional(t.String({
+                    maxLength: 100
+                })),
                 role: t.Optional(t.Enum(WORKSPACE_ROLES)),
                 sortBy: t.Optional(t.Union([
-                    t.Literal('joinedAt'),
-                    t.Literal('name'),
-                    t.Literal('createdAt')
-                ], { default: 'joinedAt' })),
+                    t.Literal('joinedAt'), t.Literal('name'), t.Literal('createdAt')
+                ], {
+                    default: 'joinedAt'
+                })),
                 order: t.Optional(t.Union([
-                    t.Literal('asc'),
-                    t.Literal('desc')
-                ], { default: 'desc' }))
+                    t.Literal('asc'), t.Literal('desc')
+                ], {
+                    default: 'desc'
+                }))
             }),
             detail: {
                 tags: ['Workspace'],

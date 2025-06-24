@@ -15,13 +15,15 @@ export const boardRemoveMember = new Elysia()
     .use(authUserPlugin)
     .delete(
         '/:boardId/members/:memberId',
-        async ({ status, params, user, server, request, headers }) => {
+        async({ status, params, user, server, request, headers }) => {
             const { boardId, memberId } = params
             const currentUserId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
-                where: { id: boardId }
+                where: {
+                    id: boardId
+                }
             })
             if (!board) {
                 return status('Not Found', {
@@ -86,8 +88,22 @@ export const boardRemoveMember = new Elysia()
 
                 // Lookup names for logging
                 const [actor, removed] = await Promise.all([
-                    prisma.user.findUnique({ where: { id: currentUserId }, select: { name: true } }),
-                    prisma.user.findUnique({ where: { id: memberId }, select: { name: true } })
+                    prisma.user.findUnique({
+                        where: {
+                            id: currentUserId
+                        },
+                        select: {
+                            name: true
+                        }
+                    }),
+                    prisma.user.findUnique({
+                        where: {
+                            id: memberId
+                        },
+                        select: {
+                            name: true
+                        }
+                    })
                 ])
 
                 const detail = actor && removed
@@ -121,7 +137,7 @@ export const boardRemoveMember = new Elysia()
                         userId: memberId
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -15,14 +17,16 @@ export const workspaceChangeMemberRole = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/:workspaceId/members/:userId/role',
-        async ({ status, params, body, user }) => {
+        async({ status, params, body, user }) => {
             const { workspaceId, userId: targetUserId } = params
             const { role: newRole } = body
             const operatorId = user.id
 
             // Find the workspace and check if user is owner
             const workspace = await prisma.workspace.findUnique({
-                where: { id: workspaceId }
+                where: {
+                    id: workspaceId
+                }
             })
             if (!workspace) {
                 return status('Not Found', {
@@ -80,8 +84,12 @@ export const workspaceChangeMemberRole = new Elysia()
                             userId: targetUserId
                         }
                     },
-                    data: { role: newRole },
-                    include: { user: true }
+                    data: {
+                        role: newRole
+                    },
+                    include: {
+                        user: true
+                    }
                 })
 
                 // Write audit log
@@ -102,7 +110,7 @@ export const workspaceChangeMemberRole = new Elysia()
                         joinedAt: updatedMember.joinedAt
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

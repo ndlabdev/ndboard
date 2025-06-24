@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -14,14 +16,16 @@ export const workspaceUpdate = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/:workspaceId',
-        async ({ status, params, body, user }) => {
+        async({ status, params, body, user }) => {
             const { name, description } = body
             const workspaceId = params.workspaceId
             const userId = user.id
 
             // Find the workspace and check if user is owner
             const workspace = await prisma.workspace.findUnique({
-                where: { id: workspaceId }
+                where: {
+                    id: workspaceId
+                }
             })
             if (!workspace) {
                 return status('Not Found', {
@@ -42,7 +46,9 @@ export const workspaceUpdate = new Elysia()
                     where: {
                         name,
                         ownerId: userId,
-                        NOT: { id: workspaceId }
+                        NOT: {
+                            id: workspaceId
+                        }
                     }
                 })
                 if (existed) {
@@ -55,7 +61,9 @@ export const workspaceUpdate = new Elysia()
 
             try {
                 const updated = await prisma.workspace.update({
-                    where: { id: workspaceId },
+                    where: {
+                        id: workspaceId
+                    },
                     data: {
                         name,
                         description
@@ -65,14 +73,18 @@ export const workspaceUpdate = new Elysia()
                 return status('OK', {
                     data: updated
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
         {
             body: t.Object({
-                name: t.String({ minLength: 1, maxLength: 100 }),
-                description: t.Optional(t.String({ maxLength: 255 }))
+                name: t.String({
+                    minLength: 1, maxLength: 100
+                }),
+                description: t.Optional(t.String({
+                    maxLength: 255
+                }))
             }),
             detail: {
                 tags: ['Workspace'],

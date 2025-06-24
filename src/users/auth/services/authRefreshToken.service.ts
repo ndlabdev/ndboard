@@ -18,11 +18,19 @@ export const authRefreshToken = new Elysia()
     .use(jwtUserPlugin)
     .post(
         '/refresh-token',
-        async ({ status, jwtAccessToken, cookie }) => {
+        async({ status, jwtAccessToken, cookie }) => {
             // Find refresh token in database
             const tokenInDb = await prisma.refreshToken.findUnique({
-                where: { token: cookie.refreshToken.value },
-                include: { user: { include: { role: true } } }
+                where: {
+                    token: cookie.refreshToken.value
+                },
+                include: {
+                    user: {
+                        include: {
+                            role: true
+                        }
+                    }
+                }
             })
 
             if (
@@ -59,7 +67,11 @@ export const authRefreshToken = new Elysia()
             const newExpiresAt = new Date(Date.now() + JWT.EXPIRE_AT)
 
             await prisma.$transaction([
-                prisma.refreshToken.delete({ where: { token: cookie.refreshToken.value } }),
+                prisma.refreshToken.delete({
+                    where: {
+                        token: cookie.refreshToken.value
+                    }
+                }),
                 prisma.refreshToken.create({
                     data: {
                         userId: user.id,

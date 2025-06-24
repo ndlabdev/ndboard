@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -14,13 +16,15 @@ export const listCreate = new Elysia()
     .use(authUserPlugin)
     .post(
         '/',
-        async ({ body, status, user }) => {
+        async({ body, status, user }) => {
             const { name, boardId } = body
             const userId = user.id
 
             // Check if board exists
             const board = await prisma.board.findUnique({
-                where: { id: boardId },
+                where: {
+                    id: boardId
+                },
                 include: {
                     workspace: {
                         include: {
@@ -37,7 +41,7 @@ export const listCreate = new Elysia()
             }
 
             // Check if user is a member of the board's workspace
-            const isMember = board.workspace.members.some(m => m.userId === userId)
+            const isMember = board.workspace.members.some((m) => m.userId === userId)
             if (!isMember) {
                 return status('Forbidden', {
                     code: ERROR_CODES.WORKSPACE.FORBIDDEN,
@@ -47,7 +51,9 @@ export const listCreate = new Elysia()
 
             // Check for duplicate list name in the same board (optional, business logic)
             const existingList = await prisma.list.findFirst({
-                where: { name, boardId }
+                where: {
+                    name, boardId
+                }
             })
             if (existingList) {
                 return status('Conflict', {
@@ -59,8 +65,12 @@ export const listCreate = new Elysia()
             try {
                 // Get the highest current order in this board
                 const maxOrder = await prisma.list.aggregate({
-                    where: { boardId },
-                    _max: { order: true }
+                    where: {
+                        boardId
+                    },
+                    _max: {
+                        order: true
+                    }
                 })
                 const nextOrder = (maxOrder._max.order ?? 0) + 1
 
@@ -85,14 +95,18 @@ export const listCreate = new Elysia()
                         updatedAt: newList.updatedAt
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
         {
             body: t.Object({
-                name: t.String({ minLength: 1, maxLength: 100 }),
-                boardId: t.String({ minLength: 1 })
+                name: t.String({
+                    minLength: 1, maxLength: 100
+                }),
+                boardId: t.String({
+                    minLength: 1
+                })
             }),
             detail: {
                 tags: ['List'],

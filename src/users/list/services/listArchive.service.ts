@@ -14,18 +14,22 @@ export const listArchive = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/:listId/archive',
-        async ({ params, status, user }) => {
+        async({ params, status, user }) => {
             const { listId } = params
             const userId = user.id
 
             // Check if list exists
             const list = await prisma.list.findUnique({
-                where: { id: listId },
+                where: {
+                    id: listId
+                },
                 include: {
                     board: {
                         include: {
                             workspace: {
-                                include: { members: true }
+                                include: {
+                                    members: true
+                                }
                             }
                         }
                     }
@@ -39,7 +43,7 @@ export const listArchive = new Elysia()
             }
 
             // Check permission: must be member of workspace
-            const isMember = list.board.workspace.members.some(m => m.userId === userId)
+            const isMember = list.board.workspace.members.some((m) => m.userId === userId)
             if (!isMember) {
                 return status('Forbidden', {
                     code: ERROR_CODES.WORKSPACE.FORBIDDEN,
@@ -57,7 +61,9 @@ export const listArchive = new Elysia()
             try {
                 // Archive the list (soft delete)
                 const updatedList = await prisma.list.update({
-                    where: { id: listId },
+                    where: {
+                        id: listId
+                    },
                     data: {
                         isArchived: true,
                         archivedAt: new Date(),
@@ -76,7 +82,7 @@ export const listArchive = new Elysia()
                         id: updatedList.id
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

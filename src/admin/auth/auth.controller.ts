@@ -8,7 +8,9 @@ import {
     authRefreshToken
 } from './auth.service'
 
-export const authController = new Elysia({ prefix: '/auth' })
+export const authController = new Elysia({
+    prefix: '/auth'
+})
     .use(authLogin)
     .use(authRefreshToken)
     .use(authLogout)

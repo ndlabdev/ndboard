@@ -10,7 +10,9 @@ import {
     authSocialGoogle
 } from './auth.service'
 
-export const authController = new Elysia({ prefix: '/auth' })
+export const authController = new Elysia({
+    prefix: '/auth'
+})
     .use(authLogin)
     .use(authMe)
     .use(authRegister)

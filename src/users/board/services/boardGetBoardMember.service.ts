@@ -1,12 +1,16 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
 import { Prisma } from '@prisma/client'
 
 // ** Constants Imports
-import { BOARD_ROLE, PAGE } from '@constants'
+import {
+    BOARD_ROLE, PAGE
+} from '@constants'
 import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
@@ -19,13 +23,15 @@ export const boardGetBoardMember = new Elysia()
     .use(authUserPlugin)
     .get(
         '/:boardId/members',
-        async ({ query, params, status, user }) => {
+        async({ query, params, status, user }) => {
             const { boardId } = params
             const userId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
-                where: { id: boardId }
+                where: {
+                    id: boardId
+                }
             })
             if (!board) {
                 return status('Not Found', {
@@ -58,7 +64,9 @@ export const boardGetBoardMember = new Elysia()
 
             // Query owner info
             const ownerUser = await prisma.user.findUnique({
-                where: { id: board.ownerId },
+                where: {
+                    id: board.ownerId
+                },
                 select: {
                     id: true,
                     name: true,
@@ -122,7 +130,7 @@ export const boardGetBoardMember = new Elysia()
                         totalPages: Math.ceil(total / pageSize)
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

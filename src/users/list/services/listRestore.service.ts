@@ -1,5 +1,7 @@
 // ** Elysia Imports
-import { Elysia, t } from 'elysia'
+import {
+    Elysia, t
+} from 'elysia'
 
 // ** Prisma Imports
 import prisma from '@db'
@@ -14,18 +16,22 @@ export const listRestore = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/:listId/restore',
-        async ({ params, status, user }) => {
+        async({ params, status, user }) => {
             const { listId } = params
             const userId = user.id
 
             // Check if list exists
             const list = await prisma.list.findUnique({
-                where: { id: listId },
+                where: {
+                    id: listId
+                },
                 include: {
                     board: {
                         include: {
                             workspace: {
-                                include: { members: true }
+                                include: {
+                                    members: true
+                                }
                             }
                         }
                     }
@@ -39,7 +45,7 @@ export const listRestore = new Elysia()
             }
 
             // Check permission: must be member of workspace
-            const isMember = list.board.workspace.members.some(m => m.userId === userId)
+            const isMember = list.board.workspace.members.some((m) => m.userId === userId)
             if (!isMember) {
                 return status('Forbidden', {
                     code: ERROR_CODES.WORKSPACE.FORBIDDEN,
@@ -57,7 +63,9 @@ export const listRestore = new Elysia()
             try {
                 // Restore the list (un-archive)
                 const updatedList = await prisma.list.update({
-                    where: { id: listId },
+                    where: {
+                        id: listId
+                    },
                     data: {
                         isArchived: false,
                         archivedAt: null,
@@ -76,7 +84,7 @@ export const listRestore = new Elysia()
                         id: updatedList.id
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },

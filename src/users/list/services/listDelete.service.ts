@@ -14,18 +14,22 @@ export const listDelete = new Elysia()
     .use(authUserPlugin)
     .delete(
         '/:listId',
-        async ({ status, params, user }) => {
+        async({ status, params, user }) => {
             const { listId } = params
             const userId = user.id
 
             // Check if list exists
             const list = await prisma.list.findUnique({
-                where: { id: listId },
+                where: {
+                    id: listId
+                },
                 include: {
                     board: {
                         include: {
                             workspace: {
-                                include: { members: true }
+                                include: {
+                                    members: true
+                                }
                             }
                         }
                     }
@@ -39,7 +43,7 @@ export const listDelete = new Elysia()
             }
 
             // Check permission: must be member of workspace
-            const isMember = list.board.workspace.members.some(m => m.userId === userId)
+            const isMember = list.board.workspace.members.some((m) => m.userId === userId)
             if (!isMember) {
                 return status('Forbidden', {
                     code: ERROR_CODES.WORKSPACE.FORBIDDEN,
@@ -50,7 +54,9 @@ export const listDelete = new Elysia()
             try {
                 // Delete list and all child entities (cards, etc) - cascade handled by Prisma schema
                 const deletedList = await prisma.list.delete({
-                    where: { id: listId }
+                    where: {
+                        id: listId
+                    }
                 })
 
                 return status('OK', {
@@ -58,7 +64,7 @@ export const listDelete = new Elysia()
                         id: deletedList.id
                     }
                 })
-            } catch (error) {
+            } catch(error) {
                 return status('Internal Server Error', error)
             }
         },
