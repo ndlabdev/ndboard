@@ -14,10 +14,6 @@ COPY prisma ./prisma/
 
 RUN bun install
 
-RUN bun install @prisma/client
-
-RUN bunx prisma generate
-
 COPY . .
 
 EXPOSE 3333

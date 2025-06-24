@@ -10,7 +10,6 @@ services:
             dockerfile: ./Dockerfile.dev
         ports:
             - "${PORT:-3333}:3333"
-            - "${PRISMA_PORT:-5555}:5555"
         depends_on:
             - db
             - redis
@@ -54,6 +53,23 @@ services:
             - ndboard_network
         depends_on:
             - redis
+
+    prisma-studio:
+        container_name: ndboard-prisma-studio
+        image: node:20-alpine
+        working_dir: /app
+        command: npx prisma studio --port 5555 --browser none
+        volumes:
+            - ./prisma:/app/prisma
+            - ./node_modules/.prisma:/app/node_modules/.prisma
+        env_file:
+            - .env
+        ports:
+            - "${PRISMA_PORT:-5555}:5555"
+        depends_on:
+            - db
+        networks:
+            - ndboard_network
 
 volumes:
     pgdata:
