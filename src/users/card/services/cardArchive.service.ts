@@ -16,7 +16,7 @@ export const cardArchive = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/:cardId/archive',
-        async({ body, params, status, user }) => {
+        async({ params, status, user }) => {
             const { cardId } = params
             const userId = user.id
 
@@ -100,30 +100,10 @@ export const cardArchive = new Elysia()
             }
         },
         {
-            body: t.Object({
-                name: t.Optional(t.String({
-                    minLength: 1, maxLength: 100
-                })),
-                description: t.Optional(t.String({
-                    maxLength: 255
-                })),
-                dueDate: t.Optional(t.String({
-                    format: 'date-time'
-                })),
-                order: t.Optional(t.Integer()),
-                labels: t.Optional(t.Array(t.String())),
-                assignees: t.Optional(t.Array(t.String())),
-                customFields: t.Optional(t.Array(
-                    t.Object({
-                        boardCustomFieldId: t.String(),
-                        value: t.String()
-                    })
-                ))
-            }),
             detail: {
                 tags: ['Card'],
-                summary: 'Update card',
-                description: 'Update one or many fields of a card. Only board/workspace members can update. Overwrites labels, assignees, custom fields if provided.'
+                summary: 'Archive card',
+                description: 'Archive a card (soft-delete). Only board/workspace members can archive. Returns error if card does not exist or already archived.'
             }
         }
     )
