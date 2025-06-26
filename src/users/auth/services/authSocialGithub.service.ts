@@ -87,7 +87,7 @@ export const authSocialGithub = new Elysia()
         }
 
         // Validate minimal required info
-        if (!profile.email || !profile.id) {
+        if (!email || !profile.id) {
             return status('Unauthorized', {
                 code: ERROR_CODES.AUTH.ACCOUNT_INVALID,
                 message: 'GitHub account missing email or id'
@@ -116,7 +116,7 @@ export const authSocialGithub = new Elysia()
         if (!user) {
             const existedUser = await prisma.user.findUnique({
                 where: {
-                    email: profile.email
+                    email
                 },
                 include: {
                     role: true
