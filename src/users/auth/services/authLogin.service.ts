@@ -146,6 +146,14 @@ export const authLogin = new Elysia()
                 }
             })
 
+            cookie.token.set({
+                value: accessToken,
+                maxAge: JWT.ACCESS_TOKEN_EXP,
+                secure: Bun.env.NODE_ENV === 'production',
+                httpOnly: true,
+                sameSite: 'none'
+            })
+
             cookie.refreshToken.set({
                 value: refreshToken,
                 maxAge: JWT.EXPIRE_AT,
