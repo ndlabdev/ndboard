@@ -1,0 +1,67 @@
+node_modules
+bower_components
+.pnpm
+.cache
+.next
+.nuxt
+dist
+build
+tmp
+.temp
+output
+out
+
+*.log
+*.tsbuildinfo
+
+# env, secret
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.idea
+.vscode
+*.swp
+
+docker-compose*
+Dockerfile*
+Makefile
+README.md
+LICENSE
+*.md
+
+# NPM/Yarn/Bun lock files
+npm-debug.log*
+yarn-error.log*
+bun.lockb
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# Test, coverage
+coverage
+*.lcov
+test
+tests
+__tests__
+__mocks__
+
+*.bak
+*.tmp
+*~
+
+prisma/migrations/*
+!.prisma/client
+prisma/dev.db
+prisma/test.db
