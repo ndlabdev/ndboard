@@ -4,7 +4,9 @@ import { Elysia } from 'elysia'
 // ** Service Imports
 import {
     authLogin,
+    authLogout,
     authMe,
+    authRefreshToken,
     authRegister,
     authSocialGithub,
     authSocialGoogle
@@ -18,3 +20,5 @@ export const authController = new Elysia({
     .use(authRegister)
     .use(authSocialGoogle)
     .use(authSocialGithub)
+    .use(authRefreshToken)
+    .use(authLogout)
