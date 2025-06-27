@@ -169,6 +169,7 @@ export const authLogin = new Elysia()
                         id: user.id,
                         email: user.email,
                         name: user.name,
+                        avatarUrl: user.avatarUrl,
                         username: user.username,
                         isVerified: user.isVerified,
                         role: user.role,

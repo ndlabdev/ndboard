@@ -244,6 +244,7 @@ export const authSocialGoogle = new Elysia()
                     email: user.email,
                     name: user.name,
                     username: user.username,
+                    avatarUrl: user.avatarUrl,
                     isVerified: user.isVerified,
                     role: user.role,
                     createdAt: user.createdAt
