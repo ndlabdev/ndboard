@@ -15,7 +15,7 @@ export const authLogout = new Elysia()
     .post(
         '/logout',
         async({ status, user, cookie }) => {
-            if (!cookie.refreshToken) {
+            if (!cookie.refreshToken.value) {
                 return status('Bad Request', {
                     code: ERROR_CODES.AUTH.TOKEN_MISSING,
                     message: 'Refresh token is missing'
@@ -30,6 +30,7 @@ export const authLogout = new Elysia()
                 }
             })
 
+            cookie.token.remove()
             cookie.refreshToken.remove()
 
             return status('OK', {
