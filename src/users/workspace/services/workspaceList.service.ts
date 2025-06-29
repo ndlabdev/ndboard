@@ -74,6 +74,8 @@ export const workspaceList = new Elysia()
                         return {
                             id: workspace.id,
                             name: workspace.name,
+                            slug: workspace.slug,
+                            imageUrl: workspace.imageUrl,
                             description: workspace.description,
                             role: member.role,
                             joinedAt: member.joinedAt,
