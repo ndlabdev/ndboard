@@ -87,12 +87,20 @@ export const authRefreshToken = new Elysia()
                 role: user.role.name
             })
 
+            cookie.token.set({
+                value: accessToken,
+                maxAge: JWT.ACCESS_TOKEN_EXP,
+                secure: Bun.env.NODE_ENV === 'production',
+                httpOnly: Bun.env.NODE_ENV === 'production',
+                sameSite: Bun.env.NODE_ENV === 'production' ? 'none' : 'lax'
+            })
+    
             cookie.refreshToken.set({
                 value: newRefreshToken,
                 maxAge: JWT.EXPIRE_AT,
                 secure: Bun.env.NODE_ENV === 'production',
-                httpOnly: true,
-                sameSite: 'none'
+                httpOnly: Bun.env.NODE_ENV === 'production',
+                sameSite: Bun.env.NODE_ENV === 'production' ? 'none' : 'lax'
             })
 
             return status('OK', {
