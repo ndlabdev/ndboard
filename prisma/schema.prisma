@@ -148,6 +148,7 @@ model UserSecurityLog {
 model Workspace {
   id          String            @id @default(cuid(2))
   name        String            @db.VarChar(100)
+  slug        String            @db.VarChar(120)
   description String?           @db.VarChar(255)
   ownerId     String
   createdAt   DateTime          @default(now())
@@ -157,6 +158,7 @@ model Workspace {
   boards      Board[]
 
   @@unique([ownerId, name])
+  @@unique([ownerId, slug])
   @@index([ownerId])
 }
 

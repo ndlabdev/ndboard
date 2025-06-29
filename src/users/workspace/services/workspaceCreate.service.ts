@@ -3,6 +3,9 @@ import {
     Elysia, t
 } from 'elysia'
 
+// ** Third Party Imports
+import slug from 'slug'
+
 // ** Prisma Imports
 import prisma from '@db'
 
@@ -21,10 +24,15 @@ export const workspaceCreate = new Elysia()
             const { name, description } = body
 
             // Check for existing workspace with same name and ownerId
+            const workspaceSlug = slug(name)
+
             const existed = await prisma.workspace.findFirst({
                 where: {
-                    name,
-                    ownerId: user.id
+                    ownerId: user.id,
+                    OR: [
+                        { name },
+                        { slug: workspaceSlug }
+                    ]
                 }
             })
             if (existed) {
@@ -38,6 +46,7 @@ export const workspaceCreate = new Elysia()
                 const workspace = await prisma.workspace.create({
                     data: {
                         name,
+                        slug: workspaceSlug,
                         description,
                         ownerId: user.id,
                         members: {

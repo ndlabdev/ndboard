@@ -19,10 +19,12 @@
     "@prisma/client": "^6.10.1",
     "arctic": "^3.7.0",
     "elysia": "latest",
-    "elysia-oauth2": "^2.1.0"
+    "elysia-oauth2": "^2.1.0",
+    "slug": "^11.0.0"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^5.0.0",
+    "@types/slug": "^5.0.9",
     "bun-types": "latest",
     "eslint": "^9.29.0",
     "prisma": "^6.10.1",
