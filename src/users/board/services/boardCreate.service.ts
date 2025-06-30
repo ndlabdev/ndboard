@@ -7,7 +7,9 @@ import {
 import prisma from '@db'
 
 // ** Constants Imports
-import { BOARD_VISIBILITY } from '@constants'
+import {
+    BOARD_VISIBILITY, DEFAULT_BOARD_LABELS, DEFAULT_BOARD_LISTS
+} from '@constants'
 import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
@@ -60,26 +62,51 @@ export const boardCreate = new Elysia()
             }
 
             try {
-                // Create the new board
-                const newBoard = await prisma.board.create({
-                    data: {
-                        name,
-                        description,
-                        workspaceId,
-                        ownerId: userId,
-                        createdById: userId,
-                        updatedById: userId,
-                        visibility: visibility || BOARD_VISIBILITY.PRIVATE
-                    }
-                })
+                const newBoard = await prisma.$transaction(async(trx) => {
+                    // Create the new board
+                    const board = await trx.board.create({
+                        data: {
+                            name,
+                            description,
+                            workspaceId,
+                            ownerId: userId,
+                            createdById: userId,
+                            updatedById: userId,
+                            visibility: visibility || BOARD_VISIBILITY.PRIVATE
+                        }
+                    })
 
-                await prisma.boardActivity.create({
-                    data: {
-                        boardId: newBoard.id,
-                        userId,
-                        action: 'create',
-                        detail: `Created board "${name}"`
-                    }
+                    // Create default lists for the new board
+                    await trx.list.createMany({
+                        data: DEFAULT_BOARD_LISTS.map((list) => ({
+                            boardId: board.id,
+                            name: list.name,
+                            order: list.order,
+                            createdById: board.ownerId,
+                            updatedById: board.ownerId
+                        }))
+                    })
+
+                    // Create default labels for the new board
+                    await trx.boardLabel.createMany({
+                        data: DEFAULT_BOARD_LABELS.map((label) => ({
+                            boardId: board.id,
+                            name: label.name,
+                            color: label.color
+                        }))
+                    })
+
+                    // Create board activity log for creation
+                    await trx.boardActivity.create({
+                        data: {
+                            boardId: board.id,
+                            userId,
+                            action: 'create',
+                            detail: `Created board "${name}"`
+                        }
+                    })
+
+                    return board
                 })
 
                 return status('Created', {
