@@ -3,6 +3,9 @@ import {
     Elysia, t
 } from 'elysia'
 
+// ** Third Party Imports
+import slug from 'slug'
+
 // ** Prisma Imports
 import prisma from '@db'
 
@@ -17,9 +20,10 @@ export const workspaceUpdate = new Elysia()
     .patch(
         '/:workspaceId',
         async({ status, params, body, user }) => {
-            const { name, description } = body
+            const { name, slug: wsSlug, imageUrl, description } = body
             const workspaceId = params.workspaceId
             const userId = user.id
+            const workspaceSlug = slug(wsSlug)
 
             // Find the workspace and check if user is owner
             const workspace = await prisma.workspace.findUnique({
@@ -66,6 +70,8 @@ export const workspaceUpdate = new Elysia()
                     },
                     data: {
                         name,
+                        imageUrl,
+                        slug: workspaceSlug,
                         description
                     }
                 })
@@ -82,9 +88,13 @@ export const workspaceUpdate = new Elysia()
                 name: t.String({
                     minLength: 1, maxLength: 100
                 }),
+                slug: t.String({
+                    minLength: 1, maxLength: 120
+                }),
                 description: t.Optional(t.String({
                     maxLength: 255
-                }))
+                })),
+                imageUrl: t.Optional(t.String())
             }),
             detail: {
                 tags: ['Workspace'],
