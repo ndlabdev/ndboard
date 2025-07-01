@@ -40,7 +40,7 @@ export const boardCreate = new Elysia()
     .post(
         '/',
         async({ body, status, user }) => {
-            const { name, description, workspaceId, visibility } = body
+            const { name, description, workspaceId, visibility, coverImageUrl } = body
             const userId = user.id
 
             // Check if workspace exists and is active
@@ -100,6 +100,7 @@ export const boardCreate = new Elysia()
                             name,
                             description,
                             workspaceId,
+                            coverImageUrl,
                             ownerId: userId,
                             createdById: userId,
                             updatedById: userId,
@@ -161,6 +162,7 @@ export const boardCreate = new Elysia()
                     maxLength: 255
                 })),
                 workspaceId: t.String(),
+                coverImageUrl: t.Optional(t.String()),
                 visibility: t.Optional(
                     t.Enum(BOARD_VISIBILITY, {
                         default: BOARD_VISIBILITY.PRIVATE
