@@ -3,6 +3,10 @@ import {
     Elysia, t
 } from 'elysia'
 
+// ** Third Party Imports
+import slug from 'slug'
+import { createId as cuid2 } from '@paralleldrive/cuid2'
+
 // ** Prisma Imports
 import prisma from '@db'
 
@@ -14,6 +18,22 @@ import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
+
+// Helper to generate unique shortLink (using cuid2, take 8 chars)
+async function generateUniqueShortLink(): Promise<string> {
+    let shortLink: string
+    while (true) {
+        shortLink = cuid2().slice(0, 8)
+        const exist = await prisma.board.findUnique({
+            where: {
+                shortLink
+            }
+        })
+        if (!exist) break
+    }
+
+    return shortLink
+}
 
 export const boardCreate = new Elysia()
     .use(authUserPlugin)
@@ -62,6 +82,10 @@ export const boardCreate = new Elysia()
             }
 
             try {
+                // Generate shortLink and slug for the new board
+                const shortLink = await generateUniqueShortLink()
+                const boardSlug = slug(name)
+
                 const newBoard = await prisma.$transaction(async(trx) => {
                     // Check if this is the first board in the workspace
                     const boardCount = await trx.board.count({
@@ -79,7 +103,9 @@ export const boardCreate = new Elysia()
                             ownerId: userId,
                             createdById: userId,
                             updatedById: userId,
-                            visibility: visibility || BOARD_VISIBILITY.PRIVATE
+                            visibility: visibility || BOARD_VISIBILITY.PRIVATE,
+                            shortLink,
+                            slug: boardSlug
                         }
                     })
 

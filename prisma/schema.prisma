@@ -181,6 +181,8 @@ model WorkspaceMember {
 model Board {
   id            String             @id @default(cuid(2))
   name          String             @db.VarChar(100)
+  slug          String             @db.VarChar(120)
+  shortLink     String             @unique @db.VarChar(12)
   description   String?            @db.VarChar(255)
   workspaceId   String
   ownerId       String
@@ -213,6 +215,8 @@ model Board {
   @@index([createdById])
   @@index([updatedById])
   @@index([visibility])
+  @@index([shortLink])
+  @@index([slug])
 }
 
 model BoardMember {

@@ -68,13 +68,25 @@ export const BOARD_ROLE = {
 } as const
 
 export const DEFAULT_BOARD_LISTS = [
-    { name: 'To Do', order: 0 },
-    { name: 'In Progress', order: 1 },
-    { name: 'Done', order: 2 }
+    {
+        name: 'To Do', order: 0
+    },
+    {
+        name: 'In Progress', order: 1
+    },
+    {
+        name: 'Done', order: 2
+    }
 ]
 
 export const DEFAULT_BOARD_LABELS = [
-    { name: 'High', color: 'red' },
-    { name: 'Medium', color: 'yellow' },
-    { name: 'Low', color: 'green' }
+    {
+        name: 'High', color: 'red'
+    },
+    {
+        name: 'Medium', color: 'yellow'
+    },
+    {
+        name: 'Low', color: 'green'
+    }
 ]
