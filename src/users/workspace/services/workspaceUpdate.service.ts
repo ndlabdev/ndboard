@@ -45,10 +45,17 @@ export const workspaceUpdate = new Elysia()
             }
 
             // If name exists and want to be unique per user, check for duplicate
-            if (name && name !== workspace.name) {
+            if (workspaceSlug !== workspace.slug) {
                 const existed = await prisma.workspace.findFirst({
                     where: {
-                        name,
+                        OR: [
+                            {
+                                name
+                            },
+                            {
+                                slug: workspaceSlug
+                            }
+                        ],
                         ownerId: userId,
                         NOT: {
                             id: workspaceId
