@@ -48,6 +48,8 @@ model User {
   invitedBoardMembers    BoardMember[]            @relation("BoardMember_InvitedBy")
   listCreated            List[]                   @relation("ListCreatedBy")
   listUpdated            List[]                   @relation("ListUpdatedBy")
+  cardCreated            Card[]                   @relation("CardCreatedBy")
+  cardUpdated            Card[]                   @relation("CardUpdatedBy")
   boardFavorites         BoardFavorite[]
   cardAssignees          CardAssignee[]
   cardComments           CardComment[]
@@ -291,6 +293,8 @@ model Card {
   isArchived        Boolean                @default(false)
   createdAt         DateTime               @default(now())
   updatedAt         DateTime               @updatedAt
+  createdById       String
+  updatedById       String
   list              List                   @relation(fields: [listId], references: [id], onDelete: Cascade)
   board             Board                  @relation(fields: [boardId], references: [id])
   labels            CardLabel[]
@@ -300,6 +304,8 @@ model Card {
   activities        CardActivity[]
   assignees         CardAssignee[]
   customFieldValues CardCustomFieldValue[]
+  createdBy         User                   @relation("CardCreatedBy", fields: [createdById], references: [id])
+  updatedBy         User                   @relation("CardUpdatedBy", fields: [updatedById], references: [id])
 
   @@index([boardId])
   @@index([listId])
