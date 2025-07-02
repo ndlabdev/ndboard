@@ -22,15 +22,15 @@ import { paginationType } from '@src/types/core.type'
 export const boardGetBoardMember = new Elysia()
     .use(authUserPlugin)
     .get(
-        '/:boardId/members',
+        '/:shortLink/members',
         async({ query, params, status, user }) => {
-            const { boardId } = params
+            const { shortLink } = params
             const userId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
                 where: {
-                    id: boardId
+                    shortLink
                 }
             })
             if (!board) {
@@ -39,6 +39,8 @@ export const boardGetBoardMember = new Elysia()
                     message: 'Board does not exist'
                 })
             }
+
+            const boardId = board.id
 
             // Check permission: Only board member or owner can view members
             let isBoardMember = false

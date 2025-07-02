@@ -13,15 +13,15 @@ import { authUserPlugin } from '@src/users/plugins/auth'
 export const boardArchive = new Elysia()
     .use(authUserPlugin)
     .patch(
-        '/:boardId/archive',
+        '/:shortLink/archive',
         async({ status, params, user, server, request, headers }) => {
-            const { boardId } = params
+            const { shortLink } = params
             const userId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
                 where: {
-                    id: boardId
+                    shortLink
                 }
             })
             if (!board) {
@@ -48,6 +48,8 @@ export const boardArchive = new Elysia()
             }
 
             try {
+                const boardId = board.id
+
                 // Archive the board and set archivedAt
                 const archivedBoard = await prisma.board.update({
                     where: {

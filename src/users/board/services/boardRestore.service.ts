@@ -13,15 +13,15 @@ import { authUserPlugin } from '@src/users/plugins/auth'
 export const boardRestore = new Elysia()
     .use(authUserPlugin)
     .patch(
-        '/:boardId/restore',
+        '/:shortLink/restore',
         async({ status, params, user, server, request, headers }) => {
-            const { boardId } = params
+            const { shortLink } = params
             const userId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
                 where: {
-                    id: boardId
+                    shortLink
                 }
             })
             if (!board) {
@@ -48,6 +48,8 @@ export const boardRestore = new Elysia()
             }
 
             try {
+                const boardId = board.id
+
                 // Restore the board by setting isArchived to false and clearing archivedAt
                 const restoredBoard = await prisma.board.update({
                     where: {

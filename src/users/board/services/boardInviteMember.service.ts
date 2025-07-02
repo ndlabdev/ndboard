@@ -16,16 +16,16 @@ import { authUserPlugin } from '@src/users/plugins/auth'
 export const boardInviteMember = new Elysia()
     .use(authUserPlugin)
     .post(
-        '/:boardId/invite-member',
+        '/:shortLink/invite-member',
         async({ status, body, params, user, server, request, headers }) => {
-            const { boardId } = params
+            const { shortLink } = params
             const { userId: inviteUserId, role } = body
             const currentUserId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
                 where: {
-                    id: boardId
+                    shortLink
                 },
                 include: {
                     workspace: {
@@ -58,6 +58,8 @@ export const boardInviteMember = new Elysia()
                     message: 'User is not a member of the workspace'
                 })
             }
+
+            const boardId = board.id
 
             // Check if user is already a board member
             const isAlreadyBoardMember = await prisma.boardMember.findUnique({

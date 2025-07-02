@@ -14,15 +14,15 @@ import { authUserPlugin } from '@src/users/plugins/auth'
 export const boardRemoveMember = new Elysia()
     .use(authUserPlugin)
     .delete(
-        '/:boardId/members/:memberId',
+        '/:shortLink/members/:memberId',
         async({ status, params, user, server, request, headers }) => {
-            const { boardId, memberId } = params
+            const { shortLink, memberId } = params
             const currentUserId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
                 where: {
-                    id: boardId
+                    shortLink
                 }
             })
             if (!board) {
@@ -39,6 +39,8 @@ export const boardRemoveMember = new Elysia()
                     message: 'Cannot remove the board owner'
                 })
             }
+
+            const boardId = board.id
 
             // Only owner or admin can remove member
             const currentUserBoardMember = await prisma.boardMember.findUnique({

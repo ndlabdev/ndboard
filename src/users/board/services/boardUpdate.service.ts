@@ -16,16 +16,16 @@ import { authUserPlugin } from '@src/users/plugins/auth'
 export const boardUpdate = new Elysia()
     .use(authUserPlugin)
     .patch(
-        '/:boardId',
+        '/:shortLink',
         async({ status, params, body, user }) => {
             const { name, description, visibility } = body
-            const { boardId } = params
+            const { shortLink } = params
             const userId = user.id
 
             // Find board and include owner & workspace
             const board = await prisma.board.findUnique({
                 where: {
-                    id: boardId
+                    shortLink
                 },
                 include: {
                     workspace: true
@@ -65,7 +65,7 @@ export const boardUpdate = new Elysia()
             try {
                 const updated = await prisma.board.update({
                     where: {
-                        id: boardId
+                        id: board.id
                     },
                     data: {
                         name,

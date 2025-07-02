@@ -13,15 +13,15 @@ import { authUserPlugin } from '@src/users/plugins/auth'
 export const boardDelete = new Elysia()
     .use(authUserPlugin)
     .delete(
-        '/:boardId',
+        '/:shortLink',
         async({ status, params, user, server, request, headers }) => {
-            const { boardId } = params
+            const { shortLink } = params
             const userId = user.id
 
             // Find the board by ID
             const board = await prisma.board.findUnique({
                 where: {
-                    id: boardId
+                    shortLink
                 }
             })
             if (!board) {
@@ -40,6 +40,8 @@ export const boardDelete = new Elysia()
             }
 
             try {
+                const boardId = board.id
+
                 // Delete the board and related logs atomically
                 const deletedBoard = await prisma.board.delete({
                     where: {
