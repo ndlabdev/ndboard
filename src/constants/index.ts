@@ -90,3 +90,33 @@ export const DEFAULT_BOARD_LABELS = [
         name: 'Low', color: 'green'
     }
 ]
+
+export const DEFAULT_CARDS = [
+    {
+        listName: 'To Do',
+        cards: [
+            {
+                name: 'Welcome to your new board!', description: 'You can drag me to another list.'
+            },
+            {
+                name: 'Click here to edit this card', description: 'Start typing...'
+            }
+        ]
+    },
+    {
+        listName: 'In Progress',
+        cards: [
+            {
+                name: 'Try moving this card!', description: ''
+            }
+        ]
+    },
+    {
+        listName: 'Done',
+        cards: [
+            {
+                name: 'This is a completed task', description: ''
+            }
+        ]
+    }
+]

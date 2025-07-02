@@ -12,7 +12,8 @@ import prisma from '@db'
 
 // ** Constants Imports
 import {
-    BOARD_VISIBILITY, DEFAULT_BOARD_LABELS, DEFAULT_BOARD_LISTS
+    BOARD_VISIBILITY, DEFAULT_BOARD_LABELS, DEFAULT_BOARD_LISTS,
+    DEFAULT_CARDS
 } from '@constants'
 import { ERROR_CODES } from '@constants/errorCodes'
 
@@ -113,6 +114,31 @@ export const boardCreate = new Elysia()
                             updatedById: board.ownerId
                         }))
                     })
+
+                    // Retrieve the newly created lists since createMany does not return inserted rows
+                    const createdLists = await trx.list.findMany({
+                        where: {
+                            boardId: board.id
+                        }
+                    })
+
+                    // Create default cards for each list, based on the list name mapping
+                    for (const defaultCardSet of DEFAULT_CARDS) {
+                        const list = createdLists.find((l) => l.name === defaultCardSet.listName)
+                        if (list) {
+                            await trx.card.createMany({
+                                data: defaultCardSet.cards.map((card, idx) => ({
+                                    listId: list.id,
+                                    boardId: board.id,
+                                    name: card.name,
+                                    description: card.description,
+                                    order: idx,
+                                    createdById: board.ownerId,
+                                    updatedById: board.ownerId
+                                }))
+                            })
+                        }
+                    }
 
                     // Create default labels for the new board
                     await trx.boardLabel.createMany({

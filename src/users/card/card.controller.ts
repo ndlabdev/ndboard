@@ -6,6 +6,7 @@ import {
     cardArchive,
     cardCreate,
     cardDetail,
+    cardGetByList,
     cardMove,
     cardUpdate
 } from './card.service'
@@ -18,3 +19,4 @@ export const cardController = new Elysia({
     .use(cardUpdate)
     .use(cardArchive)
     .use(cardMove)
+    .use(cardGetByList)

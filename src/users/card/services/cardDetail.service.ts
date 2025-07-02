@@ -164,28 +164,6 @@ export const cardDetail = new Elysia()
             })
         },
         {
-            body: t.Object({
-                listId: t.String({
-                    minLength: 1
-                }),
-                name: t.String({
-                    minLength: 1, maxLength: 100
-                }),
-                description: t.Optional(t.String({
-                    maxLength: 255
-                })),
-                dueDate: t.Optional(t.String({
-                    format: 'date-time'
-                })),
-                labels: t.Optional(t.Array(t.String())),
-                assignees: t.Optional(t.Array(t.String())),
-                customFields: t.Optional(t.Array(
-                    t.Object({
-                        boardCustomFieldId: t.String(),
-                        value: t.String()
-                    })
-                ))
-            }),
             detail: {
                 tags: ['Card'],
                 summary: 'Get card detail',
