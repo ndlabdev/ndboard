@@ -85,7 +85,9 @@ export const cardCreate = new Elysia()
                             name,
                             description,
                             dueDate: dueDate ? new Date(dueDate) : undefined,
-                            order: nextOrder
+                            order: nextOrder,
+                            createdById: userId,
+                            updatedById: userId
                         }
                     })
 
@@ -132,6 +134,8 @@ export const cardCreate = new Elysia()
                             detail: `Created card "${name}" in list "${list.name}"`
                         }
                     })
+
+                    return card
                 })
 
                 return status('Created', {
