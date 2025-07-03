@@ -253,7 +253,7 @@ model BoardActivity {
   boardId   String
   userId    String
   action    String   @db.VarChar(50)
-  detail    String?  @db.VarChar(255)
+  detail    String?  @db.Text
   createdAt DateTime @default(now())
   board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id])
@@ -286,8 +286,8 @@ model Card {
   id                String                 @id @default(cuid(2))
   listId            String
   boardId           String
-  name              String                 @db.VarChar(100)
-  description       String?                @db.VarChar(255)
+  name              String                 @db.Text
+  description       String?                @db.Text
   order             Int                    @default(0)
   dueDate           DateTime?
   isArchived        Boolean                @default(false)

@@ -151,11 +151,9 @@ export const cardCreate = new Elysia()
                     minLength: 1
                 }),
                 name: t.String({
-                    minLength: 1, maxLength: 100
+                    minLength: 1
                 }),
-                description: t.Optional(t.String({
-                    maxLength: 255
-                })),
+                description: t.Optional(t.String()),
                 dueDate: t.Optional(t.String({
                     format: 'date-time'
                 })),

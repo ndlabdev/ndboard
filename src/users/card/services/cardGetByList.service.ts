@@ -7,10 +7,12 @@ import {
 import prisma from '@db'
 import { Prisma } from '@prisma/client'
 
+// ** Third Party Imports
+import ogs from 'open-graph-scraper'
+import { OgObject } from 'open-graph-scraper/types'
+
 // ** Constants Imports
-import {
-    PAGE, WORKSPACE_ROLES
-} from '@constants'
+import { PAGE } from '@constants'
 import { ERROR_CODES } from '@constants/errorCodes'
 
 // ** Plugins Imports
@@ -119,29 +121,46 @@ export const cardGetByList = new Elysia()
                 ])
 
                 return status('OK', {
-                    data: data.map((card) => ({
-                        id: card.id,
-                        name: card.name,
-                        description: card.description,
-                        dueDate: card.dueDate,
-                        order: card.order,
-                        isArchived: card.isArchived,
-                        createdAt: card.createdAt,
-                        updatedAt: card.updatedAt,
-                        labels: card.labels.map((l) => l.label),
-                        assignees: card.assignees.map((a) => ({
-                            id: a.user.id,
-                            name: a.user.name,
-                            avatarUrl: a.user.avatarUrl
-                        })),
-                        checklistCount: card.checklists.length,
-                        attachments: card.attachments,
-                        customFields: card.customFieldValues.map((cf) => ({
-                            id: cf.boardCustomField.id,
-                            name: cf.boardCustomField.name,
-                            value: cf.value
-                        }))
-                    })),
+                    data: await Promise.all(
+                        data.map(async(card) => {
+                            let meta: OgObject | undefined
+
+                            if (/^https?:\/\/\S+$/i.test(card.name.trim())) {
+                                try {
+                                    const { error, result } = await ogs({
+                                        url: card.name
+                                    })
+                                    if (!error) meta = result
+                                } catch(e) {
+                                    meta = undefined
+                                }
+                            }
+                            return {
+                                id: card.id,
+                                name: card.name,
+                                description: card.description,
+                                dueDate: card.dueDate,
+                                order: card.order,
+                                isArchived: card.isArchived,
+                                createdAt: card.createdAt,
+                                updatedAt: card.updatedAt,
+                                labels: card.labels.map((l) => l.label),
+                                assignees: card.assignees.map((a) => ({
+                                    id: a.user.id,
+                                    name: a.user.name,
+                                    avatarUrl: a.user.avatarUrl
+                                })),
+                                checklistCount: card.checklists.length,
+                                attachments: card.attachments,
+                                customFields: card.customFieldValues.map((cf) => ({
+                                    id: cf.boardCustomField.id,
+                                    name: cf.boardCustomField.name,
+                                    value: cf.value
+                                })),
+                                meta
+                            }
+                        })
+                    ),
                     meta: {
                         total,
                         page,
