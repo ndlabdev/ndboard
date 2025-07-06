@@ -16,7 +16,7 @@ export const listReorder = new Elysia()
     .use(authUserPlugin)
     .patch(
         '/reorder',
-        async({ status, params, body, user }) => {
+        async({ status, body, user }) => {
             const { boardId, lists } = body
             const userId = user.id
 
