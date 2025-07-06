@@ -125,7 +125,7 @@ export const authLogin = new Elysia()
                 role: user.role.name
             })
             const refreshToken = crypto.randomBytes(64).toString('hex')
-            const expiresAt = new Date(now.getTime() + JWT.EXPIRE_AT)
+            const expiresAt = new Date(now.getTime() + JWT.EXPIRE_AT * 1000)
 
             await prisma.refreshToken.create({
                 data: {

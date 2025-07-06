@@ -200,7 +200,7 @@ export const authSocialGithub = new Elysia()
             role: user.role.name
         })
         const refreshToken = crypto.randomBytes(64).toString('hex')
-        const expiresAt = new Date(Date.now() + JWT.EXPIRE_AT)
+        const expiresAt = new Date(Date.now() + JWT.EXPIRE_AT * 1000)
 
         await prisma.refreshToken.create({
             data: {

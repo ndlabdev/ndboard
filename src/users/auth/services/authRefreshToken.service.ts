@@ -94,7 +94,7 @@ export const authRefreshToken = new Elysia()
                 httpOnly: Bun.env.NODE_ENV === 'production',
                 sameSite: Bun.env.NODE_ENV === 'production' ? 'none' : 'lax'
             })
-    
+
             cookie.refreshToken.set({
                 value: newRefreshToken,
                 maxAge: JWT.EXPIRE_AT,
