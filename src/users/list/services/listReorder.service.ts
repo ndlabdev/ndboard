@@ -72,13 +72,13 @@ export const listReorder = new Elysia()
             try {
                 // Batch update list orders in a transaction
                 await prisma.$transaction(
-                    lists.map((l) =>
+                    lists.map((l, idx) =>
                         prisma.list.update({
                             where: {
                                 id: l.id
                             },
                             data: {
-                                order: l.order,
+                                order: idx,
                                 updatedById: userId
                             }
                         }))
