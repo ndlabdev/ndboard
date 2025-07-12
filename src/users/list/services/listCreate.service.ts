@@ -91,6 +91,7 @@ export const listCreate = new Elysia()
                         name: newList.name,
                         boardId: newList.boardId,
                         order: newList.order,
+                        isArchived: newList.isArchived,
                         createdAt: newList.createdAt,
                         updatedAt: newList.updatedAt
                     }

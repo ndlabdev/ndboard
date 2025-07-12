@@ -138,8 +138,87 @@ export const cardCreate = new Elysia()
                     return card
                 })
 
+                // After transaction, fetch full card data with all relations
+                const card = await prisma.card.findUnique({
+                    where: {
+                        id: result.id
+                    },
+                    include: {
+                        labels: {
+                            include: {
+                                label: true
+                            }
+                        },
+                        assignees: {
+                            include: {
+                                user: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        avatarUrl: true
+                                    }
+                                }
+                            }
+                        },
+                        checklists: {
+                            include: {
+                                items: true
+                            }
+                        },
+                        attachments: true,
+                        comments: {
+                            include: {
+                                user: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        avatarUrl: true
+                                    }
+                                }
+                            }
+                        },
+                        customFieldValues: {
+                            include: {
+                                boardCustomField: true
+                            }
+                        }
+                    }
+                })
+
                 return status('Created', {
-                    data: result
+                    data: card && {
+                        id: card.id,
+                        name: card.name,
+                        description: card.description,
+                        listId: card.listId,
+                        order: card.order,
+                        dueDate: card.dueDate,
+                        isArchived: card.isArchived,
+                        labels: card.labels.map((l) => ({
+                            id: l.label.id,
+                            name: l.label.name,
+                            color: l.label.color
+                        })),
+                        assignees: card.assignees.map((a) => ({
+                            id: a.user.id,
+                            name: a.user.name,
+                            avatarUrl: a.user.avatarUrl
+                        })),
+                        checklists: card.checklists.map((cl) => ({
+                            id: cl.id,
+                            title: cl.title,
+                            order: cl.order,
+                            items: cl.items
+                        })),
+                        attachments: card.attachments,
+                        comments: card.comments.map((cmt) => ({
+                            id: cmt.id,
+                            content: cmt.content,
+                            createdAt: cmt.createdAt,
+                            user: cmt.user
+                        })),
+                        customFieldValues: card.customFieldValues
+                    }
                 })
             } catch(error) {
                 return status('Internal Server Error', error)
