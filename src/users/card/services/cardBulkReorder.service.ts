@@ -112,6 +112,11 @@ export const cardBulkReorder = new Elysia()
                         }
                     }
                 })
+
+                return status('OK', {
+                    data: true,
+                    message: 'Cards reordered successfully'
+                })
             } catch(error) {
                 return status('Internal Server Error', error)
             }
