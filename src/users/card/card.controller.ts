@@ -4,6 +4,7 @@ import { Elysia } from 'elysia'
 // ** Service Imports
 import {
     cardArchive,
+    cardBulkReorder,
     cardCreate,
     cardDetail,
     cardGetByList,
@@ -22,3 +23,4 @@ export const cardController = new Elysia({
     .use(cardMove)
     .use(cardGetByList)
     .use(cardReorder)
+    .use(cardBulkReorder)
