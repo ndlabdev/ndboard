@@ -43,44 +43,11 @@ export const boardDetail = new Elysia()
                         orderBy: {
                             order: 'asc'
                         },
-                        include: {
-                            cards: {
-                                orderBy: {
-                                    order: 'asc'
-                                },
-                                include: {
-                                    labels: {
-                                        include: {
-                                            label: true
-                                        }
-                                    },
-                                    assignees: {
-                                        include: {
-                                            user: {
-                                                select: {
-                                                    id: true, name: true, avatarUrl: true
-                                                }
-                                            }
-                                        }
-                                    },
-                                    checklists: {
-                                        include: {
-                                            items: true
-                                        }
-                                    },
-                                    attachments: true,
-                                    comments: {
-                                        include: {
-                                            user: {
-                                                select: {
-                                                    id: true, name: true, avatarUrl: true
-                                                }
-                                            }
-                                        }
-                                    },
-                                    customFieldValues: true
-                                }
-                            }
+                        select: {
+                            id: true,
+                            name: true,
+                            order: true,
+                            isArchived: true
                         }
                     }
 
@@ -116,54 +83,15 @@ export const boardDetail = new Elysia()
                         name: workspace.name
                     },
                     labels,
-                    lists: lists.map((list) => ({
-                        id: list.id,
-                        name: list.name,
-                        order: list.order,
-                        isArchived: list.isArchived
-                    })),
-                    cards: lists
-                        .flatMap((list) => list.cards.map((card) => ({
-                            id: card.id,
-                            name: card.name,
-                            description: card.description,
-                            listId: card.listId,
-                            order: card.order,
-                            dueDate: card.dueDate,
-                            isArchived: card.isArchived,
-                            labels: card.labels.map((l) => ({
-                                id: l.label.id,
-                                name: l.label.name,
-                                color: l.label.color
-                            })),
-                            assignees: card.assignees.map((a) => ({
-                                id: a.user.id,
-                                name: a.user.name,
-                                avatarUrl: a.user.avatarUrl
-                            })),
-                            checklists: card.checklists.map((cl) => ({
-                                id: cl.id,
-                                title: cl.title,
-                                order: cl.order,
-                                items: cl.items
-                            })),
-                            attachments: card.attachments,
-                            comments: card.comments.map((cmt) => ({
-                                id: cmt.id,
-                                content: cmt.content,
-                                createdAt: cmt.createdAt,
-                                user: cmt.user
-                            })),
-                            customFieldValues: card.customFieldValues
-                        })))
+                    lists
                 }
             })
         },
         {
             detail: {
                 tags: ['Board'],
-                summary: 'Get board detail',
-                description: 'Retrieve detail information of a board by its ID. User must be a workspace member or board must be public.'
+                summary: 'Get board detail (no cards)',
+                description: 'Retrieve board detail and lists only. User must be a workspace member or board must be public.'
             }
         }
     )
