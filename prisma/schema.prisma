@@ -270,6 +270,7 @@ model List {
   order       Int       @default(0)
   isArchived  Boolean   @default(false)
   archivedAt  DateTime?
+  isFold      Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   createdById String

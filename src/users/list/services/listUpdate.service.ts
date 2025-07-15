@@ -18,7 +18,7 @@ export const listUpdate = new Elysia()
         '/:listId',
         async({ status, params, body, user }) => {
             const { listId } = params
-            const { name, order } = body
+            const { name, order, isFold } = body
             const userId = user.id
 
             // Check if list exists
@@ -80,6 +80,7 @@ export const listUpdate = new Elysia()
                 }
 
                 if (name) updateData.name = name
+                if (isFold) updateData.isFold = isFold
                 if (typeof order === 'number') updateData.order = order
 
                 // Update list
@@ -109,6 +110,7 @@ export const listUpdate = new Elysia()
                 name: t.Optional(t.String({
                     minLength: 1, maxLength: 100
                 })),
+                isFold: t.Optional(t.Boolean()),
                 order: t.Optional(t.Integer())
             }),
             detail: {
