@@ -17,7 +17,7 @@ export const cardCreate = new Elysia()
     .post(
         '/',
         async({ body, status, user }) => {
-            const { listId, name, description, dueDate, labels, assignees, customFields } = body
+            const { listId, name, description, dueDate, labels, assignees, customFields, index } = body
             const userId = user.id
 
             // Find list and check permissions
@@ -64,16 +64,20 @@ export const cardCreate = new Elysia()
             }
 
             try {
-                // Calculate order if not provided (add to end)
-                const maxOrderCard = await prisma.card.findFirst({
+                const cards = await prisma.card.findMany({
                     where: {
                         listId
                     },
                     orderBy: {
-                        order: 'desc'
+                        order: 'asc'
                     }
                 })
-                const nextOrder = maxOrderCard ? maxOrderCard.order + 1 : 1
+
+                const cardIds = cards.map((card) => card.id)
+
+                let insertIdx = typeof index === 'number' && index >= 0 && index <= cards.length
+                    ? index
+                    : cards.length
 
                 // Transaction: create card + optional labels, assignees, customFields
                 const result = await prisma.$transaction(async(tx) => {
@@ -85,11 +89,26 @@ export const cardCreate = new Elysia()
                             name,
                             description,
                             dueDate: dueDate ? new Date(dueDate) : undefined,
-                            order: nextOrder,
+                            order: 0,
                             createdById: userId,
                             updatedById: userId
                         }
                     })
+
+                    const newCardIds = [...cardIds]
+                    newCardIds.splice(insertIdx, 0, card.id)
+
+                    await Promise.all(
+                        newCardIds.map((id, idx) =>
+                            tx.card.update({
+                                where: {
+                                    id
+                                },
+                                data: {
+                                    order: idx
+                                }
+                            }))
+                    )
 
                     // Add labels if any
                     if (Array.isArray(labels) && labels.length > 0) {
@@ -243,7 +262,10 @@ export const cardCreate = new Elysia()
                         boardCustomFieldId: t.String(),
                         value: t.String()
                     })
-                ))
+                )),
+                index: t.Optional(t.Integer({
+                    minimum: 0
+                }))
             }),
             detail: {
                 tags: ['Card'],
