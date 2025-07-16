@@ -76,11 +76,11 @@ export const listUpdate = new Elysia()
             try {
                 // Prepare update data
                 const updateData: typeof body & { updatedById: string } = {
-                    updatedById: userId
+                    updatedById: userId,
+                    isFold
                 }
 
                 if (name) updateData.name = name
-                if (isFold) updateData.isFold = isFold
                 if (typeof order === 'number') updateData.order = order
 
                 // Update list
