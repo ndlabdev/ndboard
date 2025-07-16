@@ -56,16 +56,23 @@ export const listCopy = new Elysia()
             }
 
             try {
-                // Get the next order index for the new list in the board
-                const maxOrder = await prisma.list.aggregate({
+                // Calculate next order: insert right after the source list
+                const newOrder = srcList.order + 1
+
+                // Shift all lists with order > srcList.order by +1 (right shift)
+                await prisma.list.updateMany({
                     where: {
-                        boardId: srcList.boardId
+                        boardId: srcList.boardId,
+                        order: {
+                            gt: srcList.order
+                        }
                     },
-                    _max: {
-                        order: true
+                    data: {
+                        order: {
+                            increment: 1
+                        }
                     }
                 })
-                const nextOrder = (maxOrder._max.order ?? 0) + 1
 
                 // Determine the new list name (if not provided, add suffix " (Copy)")
                 const listName = name ?? `${srcList.name} (Copy)`
@@ -75,12 +82,31 @@ export const listCopy = new Elysia()
                     data: {
                         name: listName,
                         boardId: srcList.boardId,
-                        order: nextOrder,
+                        order: newOrder,
                         createdById: userId,
                         updatedById: userId,
                         isArchived: false
                     }
                 })
+
+                // Copy all cards from the source list to the new list (excluding comments, attachments, activity)
+                if (srcList.cards.length > 0) {
+                    await prisma.$transaction(
+                        srcList.cards.map((card) =>
+                            prisma.card.create({
+                                data: {
+                                    name: card.name,
+                                    description: card.description,
+                                    listId: newList.id,
+                                    boardId: srcList.boardId,
+                                    order: card.order,
+                                    isArchived: false,
+                                    createdById: userId,
+                                    updatedById: userId
+                                }
+                            }))
+                    )
+                }
 
                 // Log board activity for copying list
                 await prisma.boardActivity.create({
