@@ -4,6 +4,7 @@ import { Elysia } from 'elysia'
 // ** Service Imports
 import {
     listArchive,
+    listCopy,
     listCreate,
     listDelete,
     listGetByBoard,
@@ -22,3 +23,4 @@ export const listController = new Elysia({
     .use(listArchive)
     .use(listRestore)
     .use(listReorder)
+    .use(listCopy)
