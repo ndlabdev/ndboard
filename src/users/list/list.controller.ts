@@ -8,6 +8,7 @@ import {
     listCreate,
     listDelete,
     listGetByBoard,
+    listMove,
     listReorder,
     listRestore,
     listUpdate
@@ -24,3 +25,4 @@ export const listController = new Elysia({
     .use(listRestore)
     .use(listReorder)
     .use(listCopy)
+    .use(listMove)
