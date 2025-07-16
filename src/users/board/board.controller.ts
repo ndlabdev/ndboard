@@ -14,6 +14,7 @@ import {
     boardRemoveMember,
     boardRestore,
     boardTransferOwner,
+    boardUnfavorite,
     boardUpdate
 } from './board.service'
 
@@ -32,3 +33,4 @@ export const boardController = new Elysia({
     .use(boardRemoveMember)
     .use(boardGetBoardMember)
     .use(boardFavorite)
+    .use(boardUnfavorite)
