@@ -36,7 +36,11 @@ export const listCopy = new Elysia()
                             }
                         }
                     },
-                    cards: true
+                    cards: {
+                        orderBy: {
+                            order: 'asc'
+                        }
+                    }
                 }
             })
             if (!srcList) {
@@ -90,8 +94,9 @@ export const listCopy = new Elysia()
                 })
 
                 // Copy all cards from the source list to the new list (excluding comments, attachments, activity)
+                let newCardIds: string[] = []
                 if (srcList.cards.length > 0) {
-                    await prisma.$transaction(
+                    const createdCards = await prisma.$transaction(
                         srcList.cards.map((card) =>
                             prisma.card.create({
                                 data: {
@@ -106,6 +111,7 @@ export const listCopy = new Elysia()
                                 }
                             }))
                     )
+                    newCardIds = createdCards.map((c) => c.id)
                 }
 
                 // Log board activity for copying list
@@ -127,7 +133,8 @@ export const listCopy = new Elysia()
                         order: newList.order,
                         isFold: newList.isFold,
                         createdAt: newList.createdAt,
-                        updatedAt: newList.updatedAt
+                        updatedAt: newList.updatedAt,
+                        cardIds: newCardIds
                     },
                     status: 200
                 })
