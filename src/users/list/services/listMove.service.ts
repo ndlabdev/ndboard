@@ -142,7 +142,6 @@ export const listMove = new Elysia()
                     status: 200
                 })
             } catch(error) {
-                console.log(error)
                 return status('Internal Server Error', error)
             }
         },
