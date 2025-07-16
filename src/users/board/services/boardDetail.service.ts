@@ -76,6 +76,16 @@ export const boardDetail = new Elysia()
                 })
             }
 
+            // Check if user favorited this board
+            const boardFavorite = await prisma.boardFavorite.findUnique({
+                where: {
+                    boardId_userId: {
+                        boardId: board.id,
+                        userId
+                    }
+                }
+            })
+
             // Prepare response data
             const { owner, workspace, labels, lists, ...boardData } = board
 
@@ -88,7 +98,8 @@ export const boardDetail = new Elysia()
                         name: workspace.name
                     },
                     labels,
-                    lists
+                    lists,
+                    isFavorite: !!boardFavorite
                 }
             })
         },

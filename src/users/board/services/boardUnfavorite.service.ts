@@ -68,7 +68,7 @@ export const boardUnfavorite = new Elysia()
                     }
                 })
 
-                return status('Created', {
+                return status('OK', {
                     data: {
                         boardId: board.id,
                         shortLink: board.shortLink,
