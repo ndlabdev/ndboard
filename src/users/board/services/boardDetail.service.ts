@@ -40,6 +40,9 @@ export const boardDetail = new Elysia()
                     },
                     labels: true,
                     lists: {
+                        where: {
+                            isArchived: false
+                        },
                         orderBy: {
                             order: 'asc'
                         },
