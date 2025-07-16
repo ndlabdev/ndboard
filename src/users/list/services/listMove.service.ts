@@ -98,7 +98,7 @@ export const listMove = new Elysia()
             const nextOrder = (maxOrder._max.order ?? 0) + 1
 
             try {
-                await prisma.$transaction([
+                const [updatedList] = await prisma.$transaction([
                     // Update list to target board and new order
                     prisma.list.update({
                         where: {
@@ -130,25 +130,12 @@ export const listMove = new Elysia()
                     })
                 ])
 
-                // Fetch the updated list for response
-                const updatedList = await prisma.list.findUnique({
-                    where: {
-                        id: listId
-                    }
-                })
-
-                if (!updatedList) {
-                    return status('Internal Server Error', {
-                        code: ERROR_CODES.LIST.MOVE_FAILED,
-                        message: 'Moved list but could not retrieve updated list'
-                    })
-                }
-
                 return status('OK', {
                     data: {
                         id: updatedList.id,
                         name: updatedList.name,
                         boardId: updatedList.boardId,
+                        isFold: updatedList.isFold,
                         order: updatedList.order,
                         createdAt: updatedList.createdAt,
                         updatedAt: updatedList.updatedAt
