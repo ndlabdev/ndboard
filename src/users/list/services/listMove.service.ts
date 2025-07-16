@@ -73,8 +73,7 @@ export const listMove = new Elysia()
             if (!isMemberSource || !isMemberTarget) {
                 return status('Forbidden', {
                     code: ERROR_CODES.WORKSPACE.FORBIDDEN,
-                    message: 'You are not a member of both source and target workspace',
-                    status: 403
+                    message: 'You are not a member of both source and target workspace'
                 })
             }
 
@@ -143,6 +142,7 @@ export const listMove = new Elysia()
                     status: 200
                 })
             } catch(error) {
+                console.log(error)
                 return status('Internal Server Error', error)
             }
         },

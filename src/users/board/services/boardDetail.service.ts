@@ -51,7 +51,8 @@ export const boardDetail = new Elysia()
                             name: true,
                             order: true,
                             isFold: true,
-                            isArchived: true
+                            isArchived: true,
+                            boardId: true
                         }
                     }
 

@@ -84,8 +84,8 @@ export const listArchiveAllCards = new Elysia()
         {
             detail: {
                 tags: ['List'],
-                summary: 'Archive a list',
-                description: 'Archive (soft delete) a list and all its cards. User must be a member of the board’s workspace.'
+                summary: 'Archive all cards in a list',
+                description: 'Archive all cards in a given list. User must be a member of the workspace. Operation will not affect already archived cards.'
             }
         }
     )

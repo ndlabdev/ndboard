@@ -24,8 +24,7 @@ export const cardBulkReorder = new Elysia()
             if (!Array.isArray(lists) || lists.length === 0) {
                 return status('Bad Request', {
                     code: ERROR_CODES.CARD.INVALID_ORDER,
-                    message: 'Lists array is required',
-                    status: 400
+                    message: 'Lists array is required'
                 })
             }
 
