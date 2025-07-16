@@ -9,4 +9,4 @@ export * from './services/boardRemoveMember.service'
 export * from './services/boardRestore.service'
 export * from './services/boardTransferOwner.service'
 export * from './services/boardUpdate.service'
-
+export * from './services/boardFavorite.service'
