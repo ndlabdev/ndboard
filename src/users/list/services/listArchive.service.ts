@@ -79,7 +79,12 @@ export const listArchive = new Elysia()
 
                 return status('OK', {
                     data: {
-                        id: updatedList.id
+                        id: updatedList.id,
+                        name: updatedList.name,
+                        order: updatedList.order,
+                        isFold: updatedList.isFold,
+                        isArchived: updatedList.isArchived,
+                        boardId: updatedList.boardId
                     }
                 })
             } catch(error) {
