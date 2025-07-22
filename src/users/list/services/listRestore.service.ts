@@ -94,9 +94,6 @@ export const listRestore = new Elysia()
             }
         },
         {
-            query: t.Object({
-                boardId: t.String()
-            }),
             detail: {
                 tags: ['List'],
                 summary: 'Restore an archived list',
