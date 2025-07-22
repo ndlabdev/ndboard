@@ -18,7 +18,7 @@ export const boardUpdate = new Elysia()
     .patch(
         '/:shortLink',
         async({ status, params, body, user }) => {
-            const { name, description, visibility } = body
+            const { name, description, visibility, coverImageUrl } = body
             const { shortLink } = params
             const userId = user.id
 
@@ -71,6 +71,7 @@ export const boardUpdate = new Elysia()
                         name,
                         description,
                         visibility,
+                        coverImageUrl,
                         updatedById: userId
                     }
                 })
@@ -90,6 +91,7 @@ export const boardUpdate = new Elysia()
                 description: t.Optional(t.String({
                     maxLength: 255
                 })),
+                coverImageUrl: t.Optional(t.String()),
                 visibility: t.Optional(t.Enum(BOARD_VISIBILITY))
             }),
             detail: {
