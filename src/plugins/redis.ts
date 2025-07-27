@@ -9,7 +9,13 @@ class RedisClient {
     private expiresAt = 60 * 60
 
     constructor(_connectionString?: string) {
-        this.redisClient = _connectionString ? new Redis(_connectionString) : new Redis()
+        this.redisClient = _connectionString ? new Redis(_connectionString, {
+            maxRetriesPerRequest: null,
+            enableReadyCheck: false
+        }) : new Redis({
+            maxRetriesPerRequest: null,
+            enableReadyCheck: false
+        })
 
         this.redisClient.on('error', (error) => {
             console.error('[Redis] Error:', error)
@@ -18,6 +24,10 @@ class RedisClient {
         this.redisClient.on('close', () => {
             console.error('[Redis] Connection closed.')
         })
+    }
+
+    getRawInstance() {
+        return this.redisClient
     }
 
     async set(key: string, value: string, expiresAt = this.expiresAt) {
@@ -49,11 +59,10 @@ class RedisClient {
     }
 }
 
-const redisPlugin = (app: Elysia) =>
-    app.decorate({
-        redis: new RedisClient(Bun.env.REDIS_URL)
-    })
-
-export { redisPlugin }
-
+export const redisClient = new RedisClient(Bun.env.REDIS_URL)
 export type RedisClientType = InstanceType<typeof RedisClient>
+
+export const redisPlugin = (app: Elysia) =>
+    app.decorate({
+        redis: redisClient
+    })

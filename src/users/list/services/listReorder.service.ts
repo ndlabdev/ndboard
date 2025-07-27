@@ -3,11 +3,8 @@ import {
     Elysia, t
 } from 'elysia'
 
-// ** Prisma Imports
-import prisma from '@db'
-
-// ** Constants Imports
-import { ERROR_CODES } from '@constants/errorCodes'
+// ** Queue Imports
+import { listReorderQueue } from '../queues/listReorder.queue'
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
@@ -20,87 +17,22 @@ export const listReorder = new Elysia()
             const { boardId, lists } = body
             const userId = user.id
 
-            // Check if board exists & workspace permission
-            const board = await prisma.board.findUnique({
-                where: {
-                    id: boardId
+            await listReorderQueue.add(
+                'reorder-board',
+                {
+                    boardId, lists, userId
                 },
-                include: {
-                    workspace: {
-                        include: {
-                            members: true
-                        }
-                    },
-                    lists: true
+                {
+                    jobId: `reorder:${boardId}:${Date.now()}`,
+                    removeOnComplete: 50,
+                    removeOnFail: 20
                 }
+            )
+
+            return status('OK', {
+                data: true,
+                message: 'List reorder successfully!'
             })
-            if (!board) {
-                return status('Not Found', {
-                    code: ERROR_CODES.BOARD.NOT_FOUND,
-                    message: 'Board does not exist'
-                })
-            }
-
-            const isMember = board.workspace.members.some((m) => m.userId === userId)
-            if (!isMember) {
-                return status('Forbidden', {
-                    code: ERROR_CODES.WORKSPACE.FORBIDDEN,
-                    message: 'You are not a member of this workspace'
-                })
-            }
-
-            // Validate all list ids belong to this board
-            const boardListIds = board.lists.map((l) => l.id)
-            const allValid = lists.every((l) => boardListIds.includes(l.id))
-            if (!allValid) {
-                return status('Bad Request', {
-                    code: ERROR_CODES.LIST.INVALID,
-                    message: 'One or more lists do not belong to this board'
-                })
-            }
-
-            // Validate unique order & unique list ids
-            const orderSet = new Set(lists.map((l) => l.order))
-            const idSet = new Set(lists.map((l) => l.id))
-            if (orderSet.size !== lists.length || idSet.size !== lists.length) {
-                return status('Bad Request', {
-                    code: ERROR_CODES.LIST.INVALID_ORDER,
-                    message: 'Orders or list ids are not unique'
-                })
-            }
-
-            try {
-                // Batch update list orders in a transaction
-                await prisma.$transaction(
-                    lists.map((l, idx) =>
-                        prisma.list.update({
-                            where: {
-                                id: l.id
-                            },
-                            data: {
-                                order: idx,
-                                updatedById: userId
-                            }
-                        }))
-                )
-
-                // Log activity
-                await prisma.boardActivity.create({
-                    data: {
-                        boardId: boardId,
-                        userId,
-                        action: 'reorder_list',
-                        detail: `Reordered lists in board "${board.name}"`
-                    }
-                })
-
-                return status('OK', {
-                    data: true,
-                    message: 'List reorder successfully!'
-                })
-            } catch(error) {
-                return status('Internal Server Error', error)
-            }
         },
         {
             body: t.Object({
