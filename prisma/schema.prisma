@@ -318,6 +318,7 @@ model BoardLabel {
   boardId String
   name    String      @db.VarChar(50)
   color   String      @db.VarChar(20)
+  tone    String      @db.VarChar(10) @default("normal")
   board   Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
   cards   CardLabel[]
 

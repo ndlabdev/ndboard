@@ -145,7 +145,8 @@ export const boardCreate = new Elysia()
                         data: DEFAULT_BOARD_LABELS.map((label) => ({
                             boardId: board.id,
                             name: label.name,
-                            color: label.color
+                            color: label.color,
+                            tone: label.tone
                         }))
                     })
 

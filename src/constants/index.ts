@@ -81,13 +81,13 @@ export const DEFAULT_BOARD_LISTS = [
 
 export const DEFAULT_BOARD_LABELS = [
     {
-        name: 'High', color: 'red'
+        name: 'High', color: 'red', tone: 'normal'
     },
     {
-        name: 'Medium', color: 'yellow'
+        name: 'Medium', color: 'yellow', tone: 'normal'
     },
     {
-        name: 'Low', color: 'green'
+        name: 'Low', color: 'green', tone: 'normal'
     }
 ]
 
