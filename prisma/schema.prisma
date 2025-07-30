@@ -322,7 +322,6 @@ model BoardLabel {
   board   Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
   cards   CardLabel[]
 
-  @@unique([boardId, name])
   @@index([boardId])
 }
 
