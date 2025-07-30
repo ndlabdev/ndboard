@@ -16,7 +16,8 @@ import {
     boardRestore,
     boardTransferOwner,
     boardUnfavorite,
-    boardUpdate
+    boardUpdate,
+    boardUpdateLabel
 } from './board.service'
 
 export const boardController = new Elysia({
@@ -36,3 +37,4 @@ export const boardController = new Elysia({
     .use(boardFavorite)
     .use(boardUnfavorite)
     .use(boardCreateLabel)
+    .use(boardUpdateLabel)
