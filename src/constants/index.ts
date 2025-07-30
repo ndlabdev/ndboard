@@ -120,3 +120,24 @@ export const DEFAULT_CARDS = [
         ]
     }
 ]
+
+export const LABEL_COLOR_NAMES = {
+    green: 'green',
+    yellow: 'yellow',
+    orange: 'orange',
+    red: 'red',
+    blue: 'blue',
+    purple: 'purple',
+    sky: 'sky',
+    pink: 'pink',
+    lime: 'lime',
+    teal: 'teal',
+    gray: 'gray',
+    black: 'black'
+} as const
+
+export const LABEL_TONES = {
+    subtle: 'subtle',
+    normal: 'normal',
+    bold: 'bold'
+} as const

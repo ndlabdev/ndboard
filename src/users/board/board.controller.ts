@@ -5,6 +5,7 @@ import { Elysia } from 'elysia'
 import {
     boardArchive,
     boardCreate,
+    boardCreateLabel,
     boardDelete,
     boardDetail,
     boardFavorite,
@@ -34,3 +35,4 @@ export const boardController = new Elysia({
     .use(boardGetBoardMember)
     .use(boardFavorite)
     .use(boardUnfavorite)
+    .use(boardCreateLabel)
