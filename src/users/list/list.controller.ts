@@ -8,6 +8,7 @@ import {
     listCopy,
     listCreate,
     listDelete,
+    listGetArchiveList,
     listGetByBoard,
     listMove,
     listMoveAllCards,
@@ -30,3 +31,4 @@ export const listController = new Elysia({
     .use(listMove)
     .use(listArchiveAllCards)
     .use(listMoveAllCards)
+    .use(listGetArchiveList)
