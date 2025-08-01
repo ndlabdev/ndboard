@@ -7,6 +7,7 @@ import {
     cardBulkReorder,
     cardCreate,
     cardDetail,
+    cardGetArchiveList,
     cardGetByList,
     cardMove,
     cardReorder,
@@ -24,3 +25,4 @@ export const cardController = new Elysia({
     .use(cardGetByList)
     .use(cardReorder)
     .use(cardBulkReorder)
+    .use(cardGetArchiveList)
