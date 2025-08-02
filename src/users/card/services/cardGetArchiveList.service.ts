@@ -58,14 +58,24 @@ export const cardGetArchiveList = new Elysia()
             // 3. Get total archived card count for meta
             const total = await prisma.card.count({
                 where: {
-                    boardId, isArchived: true
+                    boardId,
+                    isArchived: true,
+                    name: {
+                        contains: query.q,
+                        mode: 'insensitive'
+                    }
                 }
             })
 
             // 4. Get paginated archived cards (all lists in board)
             const cards = await prisma.card.findMany({
                 where: {
-                    boardId, isArchived: true
+                    boardId,
+                    isArchived: true,
+                    name: {
+                        contains: query.q,
+                        mode: 'insensitive'
+                    }
                 },
                 orderBy: {
                     updatedAt: 'desc'
@@ -132,6 +142,7 @@ export const cardGetArchiveList = new Elysia()
         {
             query: t.Object({
                 boardId: t.String(),
+                q: t.String(),
                 page: t.Optional(t.Integer({
                     minimum: 1
                 })),

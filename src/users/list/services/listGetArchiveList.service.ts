@@ -17,7 +17,7 @@ export const listGetArchiveList = new Elysia()
     .get(
         '/archived',
         async({ query, status, user }) => {
-            const { boardId, page = 1, pageSize = 10 } = query
+            const { boardId, q, page = 1, pageSize = 10 } = query
             const userId = user.id
 
             const _page = Math.max(1, Number(page) || 1)
@@ -57,7 +57,11 @@ export const listGetArchiveList = new Elysia()
             const total = await prisma.list.count({
                 where: {
                     boardId,
-                    isArchived: true
+                    isArchived: true,
+                    name: {
+                        contains: q,
+                        mode: 'insensitive'
+                    }
                 }
             })
 
@@ -65,7 +69,11 @@ export const listGetArchiveList = new Elysia()
             const lists = await prisma.list.findMany({
                 where: {
                     boardId,
-                    isArchived: true
+                    isArchived: true,
+                    name: {
+                        contains: q,
+                        mode: 'insensitive'
+                    }
                 },
                 orderBy: {
                     order: 'asc'
@@ -96,6 +104,7 @@ export const listGetArchiveList = new Elysia()
         {
             query: t.Object({
                 boardId: t.String(),
+                q: t.String(),
                 page: t.Optional(t.String()),
                 pageSize: t.Optional(t.String())
             }),
