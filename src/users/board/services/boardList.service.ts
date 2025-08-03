@@ -56,9 +56,32 @@ export const boardList = new Elysia()
             const skip = ((page - 1) * pageSize) || undefined
             const take = pageSize || undefined
 
+            let boardIds: string[] | undefined
+
+            if (query.isStarred) {
+                const favorites = await prisma.boardFavorite.findMany({
+                    where: {
+                        userId,
+                        board: {
+                            workspaceId
+                        }
+                    },
+                    select: {
+                        boardId: true
+                    }
+                })
+
+                boardIds = favorites.map((f) => f.boardId)
+            }
+
             const search: Prisma.BoardWhereInput = {
                 workspaceId,
-                isArchived: false
+                isArchived: false,
+                ...(query.isStarred ? {
+                    id: {
+                        in: boardIds?.length ? boardIds : ['__empty__']
+                    }
+                } : {})
             }
 
             try {
@@ -109,7 +132,8 @@ export const boardList = new Elysia()
         {
             query: t.Object({
                 ...paginationType,
-                workspaceId: t.String()
+                workspaceId: t.String(),
+                isStarred: t.Optional(t.Boolean())
             }),
             detail: {
                 tags: ['Board'],
