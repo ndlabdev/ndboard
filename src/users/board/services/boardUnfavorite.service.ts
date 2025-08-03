@@ -70,6 +70,7 @@ export const boardUnfavorite = new Elysia()
 
                 return status('OK', {
                     data: {
+                        workspaceId: board.workspaceId,
                         boardId: board.id,
                         shortLink: board.shortLink,
                         userId,

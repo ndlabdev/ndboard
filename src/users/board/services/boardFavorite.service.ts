@@ -85,6 +85,7 @@ export const boardFavorite = new Elysia()
 
                 return status('Created', {
                     data: {
+                        workspaceId: board.workspaceId,
                         boardId: board.id,
                         shortLink: board.shortLink,
                         userId,
