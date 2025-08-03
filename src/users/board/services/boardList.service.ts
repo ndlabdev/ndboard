@@ -57,7 +57,8 @@ export const boardList = new Elysia()
             const take = pageSize || undefined
 
             const search: Prisma.BoardWhereInput = {
-                workspaceId
+                workspaceId,
+                isArchived: false
             }
 
             try {
@@ -75,8 +76,25 @@ export const boardList = new Elysia()
                     })
                 ])
 
+                const boardIds = data.map((b) => b.id)
+                const favorites = await prisma.boardFavorite.findMany({
+                    where: {
+                        userId,
+                        boardId: {
+                            in: boardIds
+                        }
+                    },
+                    select: {
+                        boardId: true
+                    }
+                })
+                const favoriteBoardIds = new Set(favorites.map((f) => f.boardId))
+
                 return status('OK', {
-                    data,
+                    data: data.map((board) => ({
+                        ...board,
+                        isFavorite: favoriteBoardIds.has(board.id)
+                    })),
                     meta: {
                         total,
                         page,
