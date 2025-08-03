@@ -61,7 +61,8 @@ export const listDelete = new Elysia()
 
                 return status('OK', {
                     data: {
-                        id: deletedList.id
+                        id: deletedList.id,
+                        boardId: deletedList.boardId
                     }
                 })
             } catch(error) {
