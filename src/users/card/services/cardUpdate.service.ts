@@ -170,6 +170,7 @@ export const cardUpdate = new Elysia()
         },
         {
             body: t.Object({
+                id: t.String(),
                 name: t.Optional(t.String({
                     minLength: 1, maxLength: 100
                 })),
