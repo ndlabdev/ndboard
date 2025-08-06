@@ -158,7 +158,28 @@ export const cardUpdate = new Elysia()
                         }
                     })
 
-                    return updatedCard
+                    const fullCard = await tx.card.findUnique({
+                        where: {
+                            id: cardId
+                        },
+                        include: {
+                            labels: {
+                                include: {
+                                    label: true
+                                }
+                            },
+                            assignees: {
+                                include: {
+                                    user: true
+                                }
+                            }
+                        }
+                    })
+
+                    return {
+                        ...fullCard,
+                        labels: fullCard?.labels.map((l) => l.label)
+                    }
                 })
 
                 return status('OK', {
