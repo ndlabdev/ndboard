@@ -3,6 +3,7 @@ import { Elysia } from 'elysia'
 
 // ** Service Imports
 import {
+    cardAddChecklist,
     cardArchive,
     cardBulkReorder,
     cardCreate,
@@ -30,3 +31,4 @@ export const cardController = new Elysia({
     .use(cardGetArchiveList)
     .use(cardRestore)
     .use(cardDelete)
+    .use(cardAddChecklist)
