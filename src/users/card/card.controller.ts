@@ -9,6 +9,7 @@ import {
     cardBulkReorder,
     cardCreate,
     cardDelete,
+    cardDeleteChecklistItem,
     cardDetail,
     cardGetArchiveList,
     cardGetByList,
@@ -34,3 +35,4 @@ export const cardController = new Elysia({
     .use(cardDelete)
     .use(cardAddChecklist)
     .use(cardAddChecklistItem)
+    .use(cardDeleteChecklistItem)
