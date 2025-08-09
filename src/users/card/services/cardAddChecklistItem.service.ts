@@ -12,17 +12,17 @@ import { ERROR_CODES } from '@constants/errorCodes'
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
 
-// ** Create a new checklist in a card
-export const cardAddChecklist = new Elysia()
+// ** Create a new checklist item in a checklist of a card
+export const cardAddChecklistItem = new Elysia()
     .use(authUserPlugin)
     .post(
-        '/:cardId/checklists',
+        '/:cardId/checklists/items',
         async({ params, body, user, status }) => {
             const { cardId } = params
             const userId = user.id
-            const { title, order } = body
+            const { name, checklistId, order } = body
 
-            // Find card with relations for permission and archived checks
+            // Find card with deep relations for permission and archived checks
             const card = await prisma.card.findUnique({
                 where: {
                     id: cardId
@@ -51,7 +51,7 @@ export const cardAddChecklist = new Elysia()
                 })
             }
 
-            // Permission check: user must be board/workspace member
+            // Permission check: user must be a board/workspace member
             const isBoardMember = card.list.board.members.some((m) => m.userId === userId)
             const isWorkspaceMember = card.list.board.workspace.members.some((m) => m.userId === userId)
             if (!isBoardMember && !isWorkspaceMember) {
@@ -61,48 +61,61 @@ export const cardAddChecklist = new Elysia()
                 })
             }
 
-            // Archived guard: do not allow creating checklist under archived entities
+            // Archived guard: do not allow creating item under archived entities
             if (card.isArchived || card.list.isArchived || card.list.board.isArchived) {
                 return status('Conflict', {
                     code: ERROR_CODES.CARD.ARCHIVED,
-                    message: 'Cannot add checklist to archived card/list/board'
+                    message: 'Cannot add checklist item to archived card/list/board'
+                })
+            }
+
+            // Ensure checklist exists and belongs to the card
+            const checklist = await prisma.checklist.findUnique({
+                where: {
+                    id: checklistId
+                },
+                select: {
+                    id: true, cardId: true, title: true
+                }
+            })
+            if (!checklist) {
+                return status('Not Found', {
+                    code: ERROR_CODES.CARD.CHECKLIST_NOT_FOUND,
+                    message: 'Checklist does not exist'
+                })
+            }
+            if (checklist.cardId !== cardId) {
+                return status('Conflict', {
+                    code: ERROR_CODES.CARD.CHECKLIST_MISMATCH,
+                    message: 'Checklist does not belong to the given card'
                 })
             }
 
             try {
                 // Compute order:
                 // If client provides an integer order >= 0, use it;
-                // otherwise append to the end (max(order)+1).
-                const finalOrder =
-                    typeof order === 'number'
-                        ? order
-                        : (await prisma.checklist.aggregate({
-                            where: {
-                                cardId
-                            },
-                            _max: {
-                                order: true
-                            }
-                        }))._max.order !== null
-                            ? ((await prisma.checklist.aggregate({
-                                where: {
-                                    cardId
-                                },
-                                _max: {
-                                    order: true
-                                }
-                            }))._max.order as number) + 1
-                            : 1
+                // otherwise append to the end (max(order)+1) within the same checklist.
+                const maxAgg = await prisma.checklistItem.aggregate({
+                    where: {
+                        checklistId
+                    },
+                    _max: {
+                        order: true
+                    }
+                })
+                const appendOrder = maxAgg._max.order !== null ? (maxAgg._max.order as number) + 1 : 0
+                const finalOrder = typeof order === 'number' && order >= 0 ? order : appendOrder
 
-                // Create checklist
-                const created = await prisma.checklist.create({
+                // Create checklist item
+                const created = await prisma.checklistItem.create({
                     data: {
-                        cardId,
-                        title,
-                        order: finalOrder
+                        checklistId,
+                        name,
+                        order: finalOrder,
+                        isChecked: false
                     },
                     include: {
-                        items: true
+                        completedBy: true
                     }
                 })
 
@@ -111,8 +124,8 @@ export const cardAddChecklist = new Elysia()
                     data: {
                         cardId,
                         userId,
-                        action: 'add_checklist',
-                        detail: `Added checklist "${created.title}"`
+                        action: 'add_checklist_item',
+                        detail: `Added checklist item "${created.name}" to checklist "${checklist.title}"`
                     }
                 })
 
@@ -121,19 +134,19 @@ export const cardAddChecklist = new Elysia()
                     data: {
                         boardId: card.list.boardId,
                         userId,
-                        action: 'add_checklist',
-                        detail: `Added checklist "${created.title}" to card "${card.name}"`
+                        action: 'add_checklist_item',
+                        detail: `Added checklist item "${created.name}" to card "${card.name}"`
                     }
                 })
 
                 return status('Created', {
                     data: {
                         id: created.id,
-                        cardId: created.cardId,
-                        title: created.title,
+                        checklistId: created.checklistId,
+                        name: created.name,
+                        isChecked: created.isChecked,
                         order: created.order,
-                        createdAt: created.createdAt,
-                        items: created.items
+                        completedBy: created.completedBy
                     }
                 })
             } catch(error) {
@@ -145,18 +158,19 @@ export const cardAddChecklist = new Elysia()
                 cardId: t.String()
             }),
             body: t.Object({
-                title: t.String({
+                name: t.String({
                     minLength: 1, maxLength: 100
                 }),
+                checklistId: t.String(),
                 order: t.Optional(t.Integer({
                     minimum: 0
                 }))
             }),
             detail: {
-                tags: ['Card', 'Checklist'],
-                summary: 'Add a new checklist to a card',
+                tags: ['Card', 'Checklist', 'ChecklistItem'],
+                summary: 'Add a new checklist item to a checklist',
                 description:
-                    'Create a new checklist under a card. Appends to the end by default (max(order)+1). Only board/workspace members can add. Operation is blocked if card/list/board is archived.'
+                    'Create a new checklist item under a checklist in a card. Appends to the end by default (max(order)+1). Only board/workspace members can add. Operation is blocked if card/list/board is archived.'
             }
         }
     )

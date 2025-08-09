@@ -104,7 +104,15 @@ export const cardGetByList = new Elysia()
                             },
                             checklists: {
                                 select: {
-                                    id: true
+                                    id: true,
+                                    title: true,
+                                    items: {
+                                        select: {
+                                            id: true,
+                                            isChecked: true,
+                                            name: true
+                                        }
+                                    }
                                 }
                             },
                             attachments: true,
@@ -151,6 +159,7 @@ export const cardGetByList = new Elysia()
                                     name: a.user.name,
                                     avatarUrl: a.user.avatarUrl
                                 })),
+                                checklists: card.checklists,
                                 checklistCount: card.checklists.length,
                                 attachments: card.attachments,
                                 customFields: card.customFieldValues.map((cf) => ({
