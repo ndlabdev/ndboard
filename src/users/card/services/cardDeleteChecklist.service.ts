@@ -167,7 +167,8 @@ export const cardDeleteChecklist = new Elysia()
                 // 6) Return standardized success payload
                 return status('OK', {
                     data: {
-                        id: checklist.id
+                        id: checklist.id,
+                        cardId
                     }
                 })
             } catch(error) {

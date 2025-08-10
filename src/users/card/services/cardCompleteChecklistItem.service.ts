@@ -187,6 +187,7 @@ export const cardCompleteChecklistItem = new Elysia()
                 return status('OK', {
                     data: {
                         id: updated.id,
+                        cardId,
                         checklistId: updated.checklistId,
                         name: updated.name,
                         isChecked: updated.isChecked,

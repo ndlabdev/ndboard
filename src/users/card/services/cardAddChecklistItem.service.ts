@@ -142,6 +142,7 @@ export const cardAddChecklistItem = new Elysia()
                 return status('Created', {
                     data: {
                         id: created.id,
+                        cardId,
                         checklistId: created.checklistId,
                         name: created.name,
                         isChecked: created.isChecked,
