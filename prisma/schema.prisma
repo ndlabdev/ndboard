@@ -342,6 +342,7 @@ model Checklist {
   title     String          @db.VarChar(100)
   order     Int             @default(0)
   createdAt DateTime        @default(now())
+  isShow    Boolean?        @default(false)
   card      Card            @relation(fields: [cardId], references: [id], onDelete: Cascade)
   items     ChecklistItem[]
 

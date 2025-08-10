@@ -19,7 +19,8 @@ import {
     cardRenameChecklistItem,
     cardReorder,
     cardRestore,
-    cardUpdate
+    cardUpdate,
+    cardUpdateChecklist
 } from './card.service'
 
 export const cardController = new Elysia({
@@ -42,3 +43,4 @@ export const cardController = new Elysia({
     .use(cardDeleteChecklist)
     .use(cardCompleteChecklistItem)
     .use(cardRenameChecklistItem)
+    .use(cardUpdateChecklist)
