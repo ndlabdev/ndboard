@@ -123,8 +123,7 @@ export const cardRenameChecklistItem = new Elysia()
                         name: item.name,
                         isChecked: item.isChecked,
                         order: item.order
-                    },
-                    meta: {}
+                    }
                 })
             }
 
