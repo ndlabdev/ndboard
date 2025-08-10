@@ -16,6 +16,7 @@ import {
     cardGetArchiveList,
     cardGetByList,
     cardMove,
+    cardRenameChecklistItem,
     cardReorder,
     cardRestore,
     cardUpdate
@@ -40,3 +41,4 @@ export const cardController = new Elysia({
     .use(cardDeleteChecklistItem)
     .use(cardDeleteChecklist)
     .use(cardCompleteChecklistItem)
+    .use(cardRenameChecklistItem)
