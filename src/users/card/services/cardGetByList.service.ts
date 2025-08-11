@@ -106,6 +106,7 @@ export const cardGetByList = new Elysia()
                                 select: {
                                     id: true,
                                     title: true,
+                                    isShow: true,
                                     items: {
                                         select: {
                                             id: true,
