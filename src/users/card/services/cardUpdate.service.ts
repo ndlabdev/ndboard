@@ -195,9 +195,7 @@ export const cardUpdate = new Elysia()
                 name: t.Optional(t.String({
                     minLength: 1, maxLength: 100
                 })),
-                description: t.Optional(t.String({
-                    maxLength: 255
-                })),
+                description: t.Optional(t.Any()),
                 dueDate: t.Optional(t.String({
                     format: 'date-time'
                 })),

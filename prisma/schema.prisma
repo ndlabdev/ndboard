@@ -288,7 +288,7 @@ model Card {
   listId            String
   boardId           String
   name              String                 @db.Text
-  description       String?                @db.Text
+  description       Json?                  @db.JsonB
   order             Float                  @default(0)
   dueDate           DateTime?
   isArchived        Boolean                @default(false)
