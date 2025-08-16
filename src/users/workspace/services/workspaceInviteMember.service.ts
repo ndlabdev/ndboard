@@ -5,6 +5,7 @@ import {
 
 // ** Prisma Imports
 import prisma from '@db'
+import { User } from '@prisma/client'
 
 // ** Constants Imports
 import { WORKSPACE_ROLES } from '@constants'
@@ -20,8 +21,9 @@ export const workspaceInviteMember = new Elysia()
         async({ status, body, params, user }) => {
             const workspaceId = params.workspaceId
             const inviterId = user.id
-            const { role = WORKSPACE_ROLES.MEMBER, email, userId } = body
+            const { role = WORKSPACE_ROLES.MEMBER, email, userId, userIds } = body
 
+            // Validate role
             if (role && !Object.values(WORKSPACE_ROLES).includes(role)) {
                 return status('Bad Request', {
                     code: ERROR_CODES.WORKSPACE.ROLE_INVALID,
@@ -50,34 +52,42 @@ export const workspaceInviteMember = new Elysia()
                     }
                 }
             })
-            if (!inviterMember || (inviterMember.role !== WORKSPACE_ROLES.OWNER && inviterMember.role !== WORKSPACE_ROLES.ADMIN)) {
+            if (
+                !inviterMember ||
+        (inviterMember.role !== WORKSPACE_ROLES.OWNER &&
+          inviterMember.role !== WORKSPACE_ROLES.ADMIN)
+            ) {
                 return status('Forbidden', {
                     code: ERROR_CODES.WORKSPACE.FORBIDDEN,
                     message: 'Only owner or admin can invite members'
                 })
             }
 
-            let invitedUser = null
+            let invitedUsers: User[] = []
 
-            // Invite by userId
-            if (userId) {
-                invitedUser = await prisma.user.findUnique({
+            // Invite by array of userIds
+            if (Array.isArray(userIds) && userIds.length > 0) {
+                invitedUsers = await prisma.user.findMany({
+                    where: {
+                        id: {
+                            in: userIds
+                        }
+                    }
+                })
+            } else if (userId) {
+                const u = await prisma.user.findUnique({
                     where: {
                         id: userId
                     }
                 })
-                if (!invitedUser) {
-                    return status('Not Found', {
-                        code: ERROR_CODES.WORKSPACE.USER_NOT_FOUND,
-                        message: 'Workspace does not exist'
-                    })
-                }
+                if (u) invitedUsers = [u]
             } else if (email) {
-                invitedUser = await prisma.user.findUnique({
+                const u = await prisma.user.findUnique({
                     where: {
                         email
                     }
                 })
+                if (u) invitedUsers = [u]
             } else {
                 return status('Bad Request', {
                     code: ERROR_CODES.WORKSPACE.USER_NOT_FOUND,
@@ -85,67 +95,80 @@ export const workspaceInviteMember = new Elysia()
                 })
             }
 
-            if (!invitedUser) {
+            if (!invitedUsers || !invitedUsers.length) {
                 return status('Not Found', {
                     code: ERROR_CODES.WORKSPACE.USER_NOT_FOUND,
-                    message: 'Invited user does not exist'
+                    message: 'Invited user(s) do not exist'
                 })
             }
 
-            // If user already is member
-            const existed = await prisma.workspaceMember.findUnique({
+            // Filter out users already in workspace
+            const existingMembers = await prisma.workspaceMember.findMany({
                 where: {
-                    workspaceId_userId: {
-                        workspaceId,
-                        userId: invitedUser.id
+                    workspaceId,
+                    userId: {
+                        in: invitedUsers.map((u) => u.id)
                     }
+                },
+                select: {
+                    userId: true
                 }
             })
-            if (existed) {
+            const existingIds = existingMembers.map((m) => m.userId)
+
+            const toInvite = invitedUsers.filter(
+                (u) => !existingIds.includes(u.id)
+            )
+            if (!toInvite.length) {
                 return status('Conflict', {
                     code: ERROR_CODES.WORKSPACE.MEMBER_EXISTS,
-                    message: 'User is already a member'
+                    message: 'All selected users are already members'
                 })
             }
 
-            // Add to workspace
-            const member = await prisma.workspaceMember.create({
-                data: {
-                    workspaceId,
-                    userId: invitedUser.id,
-                    role,
-                    invitedById: inviterId
-                },
-                include: {
-                    user: true
-                }
-            })
+            // Add new members
+            const createdMembers = await prisma.$transaction(
+                toInvite.map((u) =>
+                    prisma.workspaceMember.create({
+                        data: {
+                            workspaceId,
+                            userId: u.id,
+                            role,
+                            invitedById: inviterId
+                        },
+                        include: {
+                            user: true
+                        }
+                    }))
+            )
 
             return status('OK', {
                 data: {
-                    member: {
-                        id: member.user.id,
-                        name: member.user.name,
-                        email: member.user.email,
-                        role: member.role,
-                        joinedAt: member.joinedAt
-                    }
+                    members: createdMembers.map((m) => ({
+                        id: m.user.id,
+                        name: m.user.name,
+                        email: m.user.email,
+                        role: m.role,
+                        joinedAt: m.joinedAt
+                    }))
                 }
             })
         },
         {
             body: t.Object({
-                email: t.String({
-                    minLength: 1,
-                    format: 'email'
-                }),
+                userIds: t.Optional(t.Array(t.String())), // ✅ support multiple users
                 userId: t.Optional(t.String()),
+                email: t.Optional(
+                    t.String({
+                        minLength: 1, format: 'email'
+                    })
+                ),
                 role: t.Optional(t.Enum(WORKSPACE_ROLES))
             }),
             detail: {
                 tags: ['Workspace'],
-                summary: 'Get workspace members',
-                description: 'Get all members of a workspace, with search and filter'
+                summary: 'Invite workspace members',
+                description: 'Invite one or many users to a workspace'
             }
         }
     )
