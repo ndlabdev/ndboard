@@ -12,6 +12,7 @@ import prisma from '@db'
 
 // ** Constants Imports
 import {
+    BOARD_ROLE,
     BOARD_VISIBILITY, DEFAULT_BOARD_LABELS, DEFAULT_BOARD_LISTS,
     DEFAULT_CARDS
 } from '@constants'
@@ -101,6 +102,15 @@ export const boardCreate = new Elysia()
                             visibility: visibility || BOARD_VISIBILITY.PRIVATE,
                             shortLink,
                             slug: boardSlug
+                        }
+                    })
+
+                    await trx.boardMember.create({
+                        data: {
+                            boardId: board.id,
+                            userId: board.ownerId,
+                            role: BOARD_ROLE.ADMIN,
+                            invitedById: board.ownerId
                         }
                     })
 
