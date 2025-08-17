@@ -14,6 +14,7 @@ import { authUserPlugin } from '@src/users/plugins/auth'
 
 // ** Types Imports
 import { paginationType } from '@src/types/core.type'
+import { ROLE } from '@src/constants'
 
 export const workspaceInviteMemberSearch = new Elysia()
     .use(authUserPlugin)
@@ -60,6 +61,9 @@ export const workspaceInviteMemberSearch = new Elysia()
                         },
                         isActive: true,
                         isBanned: false,
+                        role: {
+                            name: ROLE.DEFAULT
+                        },
                         OR: [
                             {
                                 name: {
@@ -86,6 +90,9 @@ export const workspaceInviteMemberSearch = new Elysia()
                         },
                         isActive: true,
                         isBanned: false,
+                        role: {
+                            name: ROLE.DEFAULT
+                        },
                         OR: [
                             {
                                 name: {
