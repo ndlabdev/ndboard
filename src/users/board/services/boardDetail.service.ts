@@ -54,8 +54,20 @@ export const boardDetail = new Elysia()
                             isArchived: true,
                             boardId: true
                         }
+                    },
+                    members: {
+                        select: {
+                            role: true,
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    avatarUrl: true
+                                }
+                            }
+                        }
                     }
-
                 }
             })
             if (!board) {
@@ -87,7 +99,7 @@ export const boardDetail = new Elysia()
             })
 
             // Prepare response data
-            const { owner, workspace, labels, lists, ...boardData } = board
+            const { owner, workspace, labels, lists, members, ...boardData } = board
 
             return status('OK', {
                 data: {
@@ -99,6 +111,13 @@ export const boardDetail = new Elysia()
                     },
                     labels,
                     lists,
+                    members: members.map((m) => ({
+                        userId: m.user.id,
+                        name: m.user.name,
+                        email: m.user.email,
+                        avatarUrl: m.user.avatarUrl,
+                        role: m.role
+                    })),
                     isFavorite: !!boardFavorite
                 }
             })
