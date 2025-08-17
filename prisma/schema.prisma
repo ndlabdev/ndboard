@@ -290,6 +290,7 @@ model Card {
   name              String                 @db.Text
   description       Json?                  @db.JsonB
   order             Float                  @default(0)
+  startDate         DateTime?
   dueDate           DateTime?
   isArchived        Boolean                @default(false)
   createdAt         DateTime               @default(now())

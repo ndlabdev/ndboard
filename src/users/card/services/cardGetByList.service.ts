@@ -149,6 +149,7 @@ export const cardGetByList = new Elysia()
                                 name: card.name,
                                 description: card.description,
                                 listId: card.listId,
+                                startDate: card.startDate,
                                 dueDate: card.dueDate,
                                 order: card.order,
                                 isArchived: card.isArchived,

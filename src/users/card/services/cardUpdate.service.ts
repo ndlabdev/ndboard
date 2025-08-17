@@ -23,6 +23,7 @@ export const cardUpdate = new Elysia()
                 name,
                 description,
                 dueDate,
+                startDate,
                 order,
                 labels,
                 assignees,
@@ -88,7 +89,16 @@ export const cardUpdate = new Elysia()
                         data: {
                             name,
                             description,
-                            dueDate: dueDate ? new Date(dueDate) : undefined,
+                            startDate: startDate === null
+                                ? null
+                                : startDate
+                                    ? new Date(startDate)
+                                    : undefined,
+                            dueDate: dueDate === null
+                                ? null
+                                : dueDate
+                                    ? new Date(dueDate)
+                                    : undefined,
                             order: order ?? card.order
                         }
                     })
@@ -202,7 +212,10 @@ export const cardUpdate = new Elysia()
                     minLength: 1, maxLength: 100
                 })),
                 description: t.Optional(t.Any()),
-                dueDate: t.Optional(t.String({
+                startDate: t.Nullable(t.String({
+                    format: 'date-time'
+                })),
+                dueDate: t.Nullable(t.String({
                     format: 'date-time'
                 })),
                 order: t.Optional(t.Integer()),
