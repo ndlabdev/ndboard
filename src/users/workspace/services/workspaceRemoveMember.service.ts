@@ -15,7 +15,7 @@ export const workspaceRemoveMember = new Elysia()
     .use(authUserPlugin)
     .delete(
         '/:workspaceId/members/:userId',
-        async({ status, params, user }) => {
+        async({ status, params, user, server, headers, request }) => {
             const { workspaceId, userId: targetUserId } = params
             const operatorId = user.id
 
@@ -73,17 +73,83 @@ export const workspaceRemoveMember = new Elysia()
             }
 
             try {
-                const deleted = await prisma.workspaceMember.delete({
+                // Collect all boards under this workspace
+                const boards = await prisma.board.findMany({
                     where: {
-                        workspaceId_userId: {
-                            workspaceId,
-                            userId: targetUserId
-                        }
+                        workspaceId
+                    },
+                    select: {
+                        id: true
+                    }
+                })
+                const boardIds = boards.map((b) => b.id)
+
+                // Count assigned cards before deletion (for logging)
+                const assignedCardsCount = await prisma.cardAssignee.count({
+                    where: {
+                        card: {
+                            boardId: {
+                                in: boardIds
+                            }
+                        },
+                        userId: targetUserId
                     }
                 })
 
+                // Run cleanup in a transaction
+                await prisma.$transaction([
+                    // Remove from workspace
+                    prisma.workspaceMember.delete({
+                        where: {
+                            workspaceId_userId: {
+                                workspaceId,
+                                userId: targetUserId
+                            }
+                        }
+                    }),
+
+                    // Remove from all boards
+                    prisma.boardMember.deleteMany({
+                        where: {
+                            boardId: {
+                                in: boardIds
+                            },
+                            userId: targetUserId
+                        }
+                    }),
+
+                    // Unassign from all cards
+                    prisma.cardAssignee.deleteMany({
+                        where: {
+                            card: {
+                                boardId: {
+                                    in: boardIds
+                                }
+                            },
+                            userId: targetUserId
+                        }
+                    }),
+
+                    // Audit log
+                    prisma.auditLog.create({
+                        data: {
+                            userId: operatorId,
+                            action: 'WORKSPACE_REMOVE_MEMBER',
+                            description: `Removed user ${targetUserId} from workspace, removed from ${boardIds.length} boards and unassigned from ${assignedCardsCount} cards`,
+                            ipAddress: server?.requestIP(request)?.address,
+                            userAgent: headers['user-agent'] || ''
+                        }
+                    })
+                ])
+
+                // Step 8. Return summary
                 return status('OK', {
-                    data: deleted
+                    data: {
+                        workspaceId,
+                        userId: targetUserId,
+                        removedFromBoards: boardIds.length,
+                        unassignedCards: assignedCardsCount
+                    }
                 })
             } catch(error) {
                 return status('Internal Server Error', error)
