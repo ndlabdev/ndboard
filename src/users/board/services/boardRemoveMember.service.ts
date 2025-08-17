@@ -78,47 +78,44 @@ export const boardRemoveMember = new Elysia()
             }
 
             try {
-                // Remove member from board
-                await prisma.boardMember.delete({
+                // Count card assignments for logging
+                const assignedCardsCount = await prisma.cardAssignee.count({
                     where: {
-                        boardId_userId: {
-                            boardId,
-                            userId: memberId
-                        }
+                        card: {
+                            boardId
+                        },
+                        userId: memberId
                     }
                 })
 
-                // Lookup names for logging
-                const [actor, removed] = await Promise.all([
-                    prisma.user.findUnique({
+                // Transaction: remove member + unassign cards + logs
+                await prisma.$transaction([
+                    // Remove from board
+                    prisma.boardMember.delete({
                         where: {
-                            id: currentUserId
-                        },
-                        select: {
-                            name: true
+                            boardId_userId: {
+                                boardId,
+                                userId: memberId
+                            }
                         }
                     }),
-                    prisma.user.findUnique({
+
+                    // Remove from all cards in this board
+                    prisma.cardAssignee.deleteMany({
                         where: {
-                            id: memberId
-                        },
-                        select: {
-                            name: true
+                            card: {
+                                boardId
+                            },
+                            userId: memberId
                         }
-                    })
-                ])
+                    }),
 
-                const detail = actor && removed
-                    ? `${actor.name} removed ${removed.name} from the board`
-                    : `Removed user "${memberId}" from the board`
-
-                // Log audit and activity
-                await prisma.$transaction([
+                    // Logs
                     prisma.auditLog.create({
                         data: {
                             userId: currentUserId,
                             action: 'BOARD_REMOVE_MEMBER',
-                            description: detail,
+                            description: `Removed user "${memberId}" from board and unassigned from ${assignedCardsCount} card(s)`,
                             ipAddress: server?.requestIP(request)?.address,
                             userAgent: headers['user-agent'] || ''
                         }
@@ -128,7 +125,7 @@ export const boardRemoveMember = new Elysia()
                             boardId,
                             userId: currentUserId,
                             action: 'remove_member',
-                            detail
+                            detail: `Removed user "${memberId}" and unassigned from ${assignedCardsCount} card(s)`
                         }
                     })
                 ])
@@ -136,7 +133,8 @@ export const boardRemoveMember = new Elysia()
                 return status('OK', {
                     data: {
                         boardId,
-                        userId: memberId
+                        userId: memberId,
+                        unassignedCards: assignedCardsCount
                     }
                 })
             } catch(error) {

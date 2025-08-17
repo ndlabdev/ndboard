@@ -51,7 +51,12 @@ export const boardInviteMember = new Elysia()
             }
 
             const boardId = board.id
-            const invitedUsers: string[] = []
+            const invitedUsers: {
+                id: string;
+                name: string;
+                email: string;
+                avatarUrl: string | null;
+            }[] = []
             const skippedUsers: { userId: string; reason: string }[] = []
 
             for (const inviteUserId of userIds) {
@@ -93,7 +98,21 @@ export const boardInviteMember = new Elysia()
                     }
                 })
 
-                invitedUsers.push(inviteUserId)
+                const invitedUser = await prisma.user.findUnique({
+                    where: {
+                        id: inviteUserId
+                    },
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        avatarUrl: true
+                    }
+                })
+
+                if (invitedUser) {
+                    invitedUsers.push(invitedUser)
+                }
 
                 // log each invite
                 await prisma.$transaction([

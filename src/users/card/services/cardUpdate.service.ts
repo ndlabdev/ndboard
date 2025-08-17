@@ -178,7 +178,12 @@ export const cardUpdate = new Elysia()
 
                     return {
                         ...fullCard,
-                        labels: fullCard?.labels.map((l) => l.label)
+                        labels: fullCard?.labels.map((l) => l.label),
+                        assignees: fullCard?.assignees.map((l) => ({
+                            id: l.user.id,
+                            name: l.user.name,
+                            avatarUrl: l.user.avatarUrl
+                        }))
                     }
                 })
 
