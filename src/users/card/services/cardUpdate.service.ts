@@ -182,6 +182,7 @@ export const cardUpdate = new Elysia()
                         assignees: fullCard?.assignees.map((l) => ({
                             id: l.user.id,
                             name: l.user.name,
+                            email: l.user.email,
                             avatarUrl: l.user.avatarUrl
                         }))
                     }

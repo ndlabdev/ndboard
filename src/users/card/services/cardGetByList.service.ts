@@ -158,6 +158,7 @@ export const cardGetByList = new Elysia()
                                 assignees: card.assignees.map((a) => ({
                                     id: a.user.id,
                                     name: a.user.name,
+                                    email: a.user.email,
                                     avatarUrl: a.user.avatarUrl
                                 })),
                                 checklists: card.checklists,
