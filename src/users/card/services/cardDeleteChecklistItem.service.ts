@@ -114,7 +114,7 @@ export const cardDeleteChecklistItem = new Elysia()
 
             try {
                 // 6) Transaction: delete dependents, delete item, re-order remaining items
-                await prisma.$transaction(async(tx) => {
+                const result = await prisma.$transaction(async(tx) => {
                     // Delete completion records first (in case FK doesn't cascade)
                     await tx.checklistItemCompleted.deleteMany({
                         where: {
@@ -145,12 +145,22 @@ export const cardDeleteChecklistItem = new Elysia()
                     })
 
                     // Audit logs
-                    await tx.cardActivity.create({
+                    const activities = await tx.cardActivity.create({
                         data: {
                             cardId,
                             userId,
                             action: 'delete_checklist_item',
                             detail: `Deleted checklist item "${item.name}" from checklist "${checklist.title}"`
+                        },
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    avatarUrl: true
+                                }
+                            }
                         }
                     })
 
@@ -162,6 +172,8 @@ export const cardDeleteChecklistItem = new Elysia()
                             detail: `Deleted checklist item "${item.name}" in card "${card.name}"`
                         }
                     })
+
+                    return activities
                 })
 
                 // 7) Return standardized success payload
@@ -169,7 +181,9 @@ export const cardDeleteChecklistItem = new Elysia()
                     data: {
                         id: item.id,
                         cardId,
-                        checklistId: item.checklistId
+                        listId: card.listId,
+                        checklistId: item.checklistId,
+                        activities: result
                     }
                 })
             } catch(error) {

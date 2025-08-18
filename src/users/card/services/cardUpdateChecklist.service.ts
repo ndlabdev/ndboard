@@ -101,7 +101,7 @@ export const cardUpdateChecklist = new Elysia()
             }
             if (typeof isShow !== 'undefined' && isShow !== checklist.isShow) {
                 data.isShow = isShow
-                logs.push(`${isShow ? 'Showed' : 'Hid'} checklist`)
+                // logs.push(`${isShow ? 'Showed' : 'Hid'} checklist`)
             }
 
             // If nothing effectively changes, short-circuit
@@ -131,12 +131,22 @@ export const cardUpdateChecklist = new Elysia()
                     })
 
                     // Activity logs (card feed)
-                    await tx.cardActivity.create({
+                    const activities = await tx.cardActivity.create({
                         data: {
                             cardId,
                             userId,
                             action: 'update_checklist',
                             detail: logs.join(' | ')
+                        },
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    avatarUrl: true
+                                }
+                            }
                         }
                     })
 
@@ -150,18 +160,24 @@ export const cardUpdateChecklist = new Elysia()
                         }
                     })
 
-                    return res
+                    return {
+                        ...res,
+                        listId: card.listId,
+                        activities
+                    }
                 })
 
                 return status('OK', {
                     data: {
                         id: updated.id,
                         cardId: updated.cardId,
+                        listId: updated.listId,
                         title: updated.title,
                         isShow: updated.isShow,
                         order: updated.order,
                         createdAt: updated.createdAt,
-                        items: updated.items
+                        items: updated.items,
+                        activities: updated.activities
                     }
                 })
             } catch(error) {

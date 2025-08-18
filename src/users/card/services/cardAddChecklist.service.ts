@@ -107,12 +107,22 @@ export const cardAddChecklist = new Elysia()
                 })
 
                 // Log to card activity (history/audit)
-                await prisma.cardActivity.create({
+                const activities = await prisma.cardActivity.create({
                     data: {
                         cardId,
                         userId,
                         action: 'add_checklist',
                         detail: `Added checklist "${created.title}"`
+                    },
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                avatarUrl: true
+                            }
+                        }
                     }
                 })
 
@@ -129,11 +139,13 @@ export const cardAddChecklist = new Elysia()
                 return status('Created', {
                     data: {
                         id: created.id,
+                        listId: card.listId,
                         cardId: created.cardId,
                         title: created.title,
                         order: created.order,
                         createdAt: created.createdAt,
-                        items: created.items
+                        items: created.items,
+                        activities
                     }
                 })
             } catch(error) {

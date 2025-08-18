@@ -116,7 +116,7 @@ export const cardCompleteChecklistItem = new Elysia()
             try {
                 const updated = await prisma.$transaction(async(tx) => {
                     // 6) Update item checked state
-                    const updatedItem = await tx.checklistItem.update({
+                    await tx.checklistItem.update({
                         where: {
                             id: itemId
                         },
@@ -154,12 +154,22 @@ export const cardCompleteChecklistItem = new Elysia()
                     }
 
                     // 8) Audit logs
-                    await tx.cardActivity.create({
+                    const activities = await tx.cardActivity.create({
                         data: {
                             cardId,
                             userId,
                             action: completed ? 'complete_checklist_item' : 'uncomplete_checklist_item',
                             detail: `${completed ? 'Completed' : 'Uncompleted'} checklist item "${item.name}" in "${checklist.title}"`
+                        },
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    avatarUrl: true
+                                }
+                            }
                         }
                     })
 
@@ -181,7 +191,10 @@ export const cardCompleteChecklistItem = new Elysia()
                             completedBy: true
                         }
                     })
-                    return fresh!
+                    return {
+                        ...fresh,
+                        activities
+                    }
                 })
 
                 return status('OK', {
@@ -192,7 +205,8 @@ export const cardCompleteChecklistItem = new Elysia()
                         name: updated.name,
                         isChecked: updated.isChecked,
                         order: updated.order,
-                        completedBy: updated.completedBy
+                        completedBy: updated.completedBy,
+                        activities: updated.activities
                     }
                 })
             } catch(error) {

@@ -92,7 +92,7 @@ export const cardDeleteChecklist = new Elysia()
 
             try {
                 // 5) Transaction: delete all nested data, delete checklist, and reorder remaining checklists
-                await prisma.$transaction(async(tx) => {
+                const result = await prisma.$transaction(async(tx) => {
                     // Load all item ids under this checklist
                     const items = await tx.checklistItem.findMany({
                         where: {
@@ -145,12 +145,22 @@ export const cardDeleteChecklist = new Elysia()
                     })
 
                     // Audit logs
-                    await tx.cardActivity.create({
+                    const activities = await tx.cardActivity.create({
                         data: {
                             cardId,
                             userId,
                             action: 'delete_checklist',
                             detail: `Deleted checklist "${checklist.title}"`
+                        },
+                        include: {
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    avatarUrl: true
+                                }
+                            }
                         }
                     })
 
@@ -162,13 +172,17 @@ export const cardDeleteChecklist = new Elysia()
                             detail: `Deleted a checklist from card "${card.name}"`
                         }
                     })
+
+                    return activities
                 })
 
                 // 6) Return standardized success payload
                 return status('OK', {
                     data: {
                         id: checklist.id,
-                        cardId
+                        cardId,
+                        listId: card.listId,
+                        activities: result
                     }
                 })
             } catch(error) {

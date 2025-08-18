@@ -142,12 +142,22 @@ export const cardRenameChecklistItem = new Elysia()
                 })
 
                 // 7) Audit logs
-                await prisma.cardActivity.create({
+                const activities = await prisma.cardActivity.create({
                     data: {
                         cardId,
                         userId,
                         action: 'rename_checklist_item',
                         detail: `Renamed checklist item from "${item.name}" to "${updated.name}" in "${checklist.title}"`
+                    },
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                avatarUrl: true
+                            }
+                        }
                     }
                 })
                 await prisma.boardActivity.create({
@@ -163,11 +173,14 @@ export const cardRenameChecklistItem = new Elysia()
                 return status('OK', {
                     data: {
                         id: updated.id,
+                        cardId,
+                        listId: card.listId,
                         checklistId: updated.checklistId,
                         name: updated.name,
                         isChecked: updated.isChecked,
                         order: updated.order,
-                        completedBy: updated.completedBy
+                        completedBy: updated.completedBy,
+                        activities
                     }
                 })
             } catch(error) {
