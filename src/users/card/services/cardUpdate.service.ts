@@ -5,6 +5,7 @@ import {
 
 // ** Prisma Imports
 import prisma from '@db'
+import { Prisma } from '@prisma/client'
 
 // ** Constants Imports
 import { ERROR_CODES } from '@constants/errorCodes'
@@ -103,6 +104,185 @@ export const cardUpdate = new Elysia()
                         }
                     })
 
+                    const activities: Prisma.BoardActivityCreateManyInput[] = []
+                    // Compare name
+                    if (name && name !== card.name) {
+                        activities.push({
+                            boardId: card.list.boardId,
+                            userId,
+                            action: 'update_card_name',
+                            detail: `Changed card name from "${card.name}" to "${name}"`
+                        })
+                    }
+
+                    // Compare description
+                    if (description && description !== card.description) {
+                        activities.push({
+                            boardId: card.list.boardId,
+                            userId,
+                            action: 'update_card_description',
+                            detail: 'Updated card description'
+                        })
+                    }
+
+                    // Compare startDate
+                    if (startDate !== undefined) {
+                        if (startDate === null && card.startDate) {
+                            activities.push({
+                                boardId: card.list.boardId,
+                                userId,
+                                action: 'remove_start_date',
+                                detail: 'Removed start date'
+                            })
+                        } else if (startDate && (!card.startDate || new Date(startDate).getTime() !== card.startDate.getTime())) {
+                            activities.push({
+                                boardId: card.list.boardId,
+                                userId,
+                                action: 'update_start_date',
+                                detail: `Set start date to ${new Date(startDate).toISOString()}`
+                            })
+                        }
+                    }
+
+                    // Compare dueDate
+                    if (dueDate !== undefined) {
+                        if (dueDate === null && card.dueDate) {
+                            activities.push({
+                                boardId: card.list.boardId,
+                                userId,
+                                action: 'remove_due_date',
+                                detail: 'Removed due date'
+                            })
+                        } else if (dueDate && (!card.dueDate || new Date(dueDate).getTime() !== card.dueDate.getTime())) {
+                            activities.push({
+                                boardId: card.list.boardId,
+                                userId,
+                                action: 'update_due_date',
+                                detail: `Set due date to ${new Date(dueDate).toISOString()}`
+                            })
+                        }
+                    }
+
+                    // Compare labels
+                    if (Array.isArray(labels)) {
+                        const oldLabels = await tx.cardLabel.findMany({
+                            where: {
+                                cardId
+                            },
+                            include: {
+                                label: true
+                            }
+                        })
+                        const oldLabelIds = oldLabels.map((l) => l.labelId)
+
+                        const added = labels.filter((l) => !oldLabelIds.includes(l))
+                        const removed = oldLabelIds.filter((l) => !labels.includes(l))
+
+                        // Added labels
+                        if (added.length > 0) {
+                            const addedLabels = await tx.boardLabel.findMany({
+                                where: {
+                                    id: {
+                                        in: added
+                                    }
+                                }
+                            })
+                            addedLabels.forEach((lbl) => {
+                                activities.push({
+                                    boardId: card.list.boardId,
+                                    userId,
+                                    action: 'add_label',
+                                    detail: `Added label "${lbl.name}" (${lbl.color}/${lbl.tone})`
+                                })
+                            })
+                        }
+
+                        // Removed labels
+                        if (removed.length > 0) {
+                            const removedLabels = oldLabels.filter((l) => removed.includes(l.labelId))
+                            removedLabels.forEach((lbl) => {
+                                activities.push({
+                                    boardId: card.list.boardId,
+                                    userId,
+                                    action: 'remove_label',
+                                    detail: `Removed label "${lbl.label.name}" (${lbl.label.color}/${lbl.label.tone})`
+                                })
+                            })
+                        }
+                    }
+
+                    // Compare assignees
+                    if (Array.isArray(assignees)) {
+                        const oldAssignees = await tx.cardAssignee.findMany({
+                            where: {
+                                cardId
+                            },
+                            include: {
+                                user: true
+                            }
+                        })
+                        const oldIds = oldAssignees.map((a) => a.userId)
+
+                        const added = assignees.filter((u) => !oldIds.includes(u))
+                        const removed = oldIds.filter((u) => !assignees.includes(u))
+
+                        if (added.length > 0) {
+                            const addedUsers = await tx.user.findMany({
+                                where: {
+                                    id: {
+                                        in: added
+                                    }
+                                }
+                            })
+                            addedUsers.forEach((u) => {
+                                activities.push({
+                                    boardId: card.list.boardId,
+                                    userId,
+                                    action: 'add_member',
+                                    detail: `Assigned member "${u.name}" (${u.email})`
+                                })
+                            })
+                        }
+
+                        if (removed.length > 0) {
+                            const removedUsers = oldAssignees.filter((a) => removed.includes(a.userId))
+                            removedUsers.forEach((a) => {
+                                activities.push({
+                                    boardId: card.list.boardId,
+                                    userId,
+                                    action: 'remove_member',
+                                    detail: `Removed member "${a.user.name}" (${a.user.email})`
+                                })
+                            })
+                        }
+                    }
+
+                    // Custom fields
+                    if (Array.isArray(customFields)) {
+                        activities.push({
+                            boardId: card.list.boardId,
+                            userId,
+                            action: 'update_custom_fields',
+                            detail: 'Updated custom fields'
+                        })
+                    }
+
+                    // Bulk insert all logs
+                    if (activities.length > 0) {
+                        await tx.boardActivity.createMany({
+                            data: activities
+                        })
+
+                        await tx.cardActivity.createMany({
+                            data: activities.map((a) => ({
+                                cardId: cardId,
+                                userId: a.userId,
+                                action: a.action,
+                                detail: a.detail
+                            }))
+                        })
+                    }
+
                     // Overwrite labels if provided
                     if (Array.isArray(labels)) {
                         await tx.cardLabel.deleteMany({
@@ -182,6 +362,36 @@ export const cardUpdate = new Elysia()
                                 include: {
                                     user: true
                                 }
+                            },
+                            comments: {
+                                include: {
+                                    user: {
+                                        select: {
+                                            id: true,
+                                            name: true,
+                                            email: true,
+                                            avatarUrl: true
+                                        }
+                                    }
+                                },
+                                orderBy: {
+                                    createdAt: 'desc'
+                                }
+                            },
+                            activities: {
+                                include: {
+                                    user: {
+                                        select: {
+                                            id: true,
+                                            name: true,
+                                            email: true,
+                                            avatarUrl: true
+                                        }
+                                    }
+                                },
+                                orderBy: {
+                                    createdAt: 'desc'
+                                }
                             }
                         }
                     })
@@ -194,6 +404,19 @@ export const cardUpdate = new Elysia()
                             name: l.user.name,
                             email: l.user.email,
                             avatarUrl: l.user.avatarUrl
+                        })),
+                        comments: fullCard?.comments.map((c) => ({
+                            id: c.id,
+                            content: c.content,
+                            createdAt: c.createdAt,
+                            user: c.user
+                        })),
+                        activities: fullCard?.activities.map((a) => ({
+                            id: a.id,
+                            action: a.action,
+                            detail: a.detail,
+                            createdAt: a.createdAt,
+                            user: a.user
                         }))
                     }
                 })
@@ -212,12 +435,12 @@ export const cardUpdate = new Elysia()
                     minLength: 1, maxLength: 100
                 })),
                 description: t.Optional(t.Any()),
-                startDate: t.Nullable(t.String({
+                startDate: t.Optional(t.Nullable(t.String({
                     format: 'date-time'
-                })),
-                dueDate: t.Nullable(t.String({
+                }))),
+                dueDate: t.Optional(t.Nullable(t.String({
                     format: 'date-time'
-                })),
+                }))),
                 order: t.Optional(t.Integer()),
                 labels: t.Optional(t.Array(t.String())),
                 assignees: t.Optional(t.Array(t.String())),

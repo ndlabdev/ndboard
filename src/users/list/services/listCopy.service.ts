@@ -101,7 +101,7 @@ export const listCopy = new Elysia()
                             prisma.card.create({
                                 data: {
                                     name: card.name,
-                                    description: card.description,
+                                    description: card.description!,
                                     listId: newList.id,
                                     boardId: srcList.boardId,
                                     order: card.order,
