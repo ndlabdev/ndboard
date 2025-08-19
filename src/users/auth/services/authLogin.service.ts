@@ -50,6 +50,12 @@ export const authLogin = new Elysia()
                     message: 'Account has been deactivated'
                 })
             }
+            if (!user.isVerified) {
+                return status('Unauthorized', {
+                    code: ERROR_CODES.AUTH.EMAIL_NOT_VERIFIED,
+                    message: 'Email has not been verified. Please check your inbox.'
+                })
+            }
             if (user.isBanned && (!user.banExpiresAt || (user.banExpiresAt > now))) {
                 return status('Unauthorized', {
                     code: ERROR_CODES.AUTH.ACCOUNT_LOCKED,

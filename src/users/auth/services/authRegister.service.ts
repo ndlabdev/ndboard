@@ -15,6 +15,9 @@ import { ERROR_CODES } from '@constants/errorCodes'
 // ** Helpers Imports
 import { generateUsername } from '@helpers/utils'
 
+// ** Email Services
+import { sendVerifyEmail } from '../emails/email.service'
+
 export const authRegister = new Elysia()
     .post(
         '/register',
@@ -67,7 +70,6 @@ export const authRegister = new Elysia()
                     email: true,
                     username: true,
                     name: true,
-                    isVerified: true,
                     role: true,
                     createdAt: true
                 }
@@ -82,8 +84,30 @@ export const authRegister = new Elysia()
                 }
             })
 
+            // Create email verification token
+            const verifyToken = Bun.randomUUIDv7()
+            const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
+            await prisma.userSecurityLog.create({
+                data: {
+                    userId: user.id,
+                    action: 'verify_email',
+                    token: verifyToken,
+                    expiresAt
+                }
+            })
+
+            // Send verification email
+            try {
+                await sendVerifyEmail(user.email, user.name, verifyToken)
+            } catch(err) {
+                console.error('Send email failed:', err)
+            }
+
             return status('OK', {
-                data: user
+                data: user,
+                meta: {
+                    message: 'Account created successfully. Please check your email to verify your account.'
+                }
             })
         },
         {
@@ -103,7 +127,8 @@ export const authRegister = new Elysia()
             detail: {
                 tags: ['Auth'],
                 summary: 'Register new user',
-                description: 'Register a new user account using email and password'
+                description:
+                    'Register a new user account using email and password. An email verification will be sent.'
             }
         }
     )

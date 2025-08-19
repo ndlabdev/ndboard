@@ -23,11 +23,15 @@
     "elysia": "latest",
     "elysia-oauth2": "^2.1.0",
     "ioredis": "^5.6.1",
+    "nodemailer": "^7.0.5",
+    "nodemailer-express-handlebars": "^7.0.0",
     "open-graph-scraper": "^6.10.0",
     "slug": "^11.0.0"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^5.0.0",
+    "@types/nodemailer": "^7.0.0",
+    "@types/nodemailer-express-handlebars": "^4.0.5",
     "@types/slug": "^5.0.9",
     "bun-types": "latest",
     "eslint": "^9.29.0",
