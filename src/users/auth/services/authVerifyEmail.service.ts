@@ -20,6 +20,14 @@ export const authVerifyEmail = new Elysia()
             const record = await prisma.userSecurityLog.findUnique({
                 where: {
                     token
+                },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            email: true
+                        }
+                    }
                 }
             })
 
@@ -40,7 +48,10 @@ export const authVerifyEmail = new Elysia()
             if (record.expiresAt < now) {
                 return status('Bad Request', {
                     code: ERROR_CODES.AUTH.TOKEN_EXPIRED,
-                    message: 'Verification link has expired'
+                    message: 'Verification link has expired',
+                    data: {
+                        email: record.user.email
+                    }
                 })
             }
 
