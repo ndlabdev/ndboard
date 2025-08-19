@@ -36,7 +36,8 @@ export const ERROR_CODES = {
         UNAUTHORIZED: 'UNAUTHORIZED',
         EMAIL_NOT_VERIFIED: 'EMAIL_NOT_VERIFIED',
         TOKEN_ALREADY_USED: 'TOKEN_ALREADY_USED',
-        TOKEN_EXPIRED: 'TOKEN_EXPIRED'
+        TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+        ALREADY_VERIFIED: 'ALREADY_VERIFIED'
     },
     USER: {
         NOT_FOUND: 'USER_NOT_FOUND',
@@ -99,6 +100,9 @@ export const ERROR_CODES = {
     },
     GENERAL: {
         FORBIDDEN: 'FORBIDDEN'
+    },
+    SYSTEM: {
+        MAIL_FAILED: 'SYSTEM_MAIL_FAILED'
     }
 } as const
 

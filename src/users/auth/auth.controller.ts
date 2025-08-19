@@ -8,6 +8,7 @@ import {
     authMe,
     authRefreshToken,
     authRegister,
+    authResendVerifyEmail,
     authSocialGithub,
     authSocialGoogle,
     authVerifyEmail
@@ -24,3 +25,4 @@ export const authController = new Elysia({
     .use(authRefreshToken)
     .use(authLogout)
     .use(authVerifyEmail)
+    .use(authResendVerifyEmail)
