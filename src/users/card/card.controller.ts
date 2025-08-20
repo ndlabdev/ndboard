@@ -5,6 +5,7 @@ import { Elysia } from 'elysia'
 import {
     cardAddChecklist,
     cardAddChecklistItem,
+    cardAddComment,
     cardArchive,
     cardBulkReorder,
     cardCompleteChecklistItem,
@@ -44,3 +45,4 @@ export const cardController = new Elysia({
     .use(cardCompleteChecklistItem)
     .use(cardRenameChecklistItem)
     .use(cardUpdateChecklist)
+    .use(cardAddComment)
