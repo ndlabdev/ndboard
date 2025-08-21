@@ -52,7 +52,12 @@ export const boardDetail = new Elysia()
                             order: true,
                             isFold: true,
                             isArchived: true,
-                            boardId: true
+                            boardId: true,
+                            _count: {
+                                select: {
+                                    cards: true
+                                }
+                            }
                         }
                     },
                     members: {
