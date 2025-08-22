@@ -52,13 +52,25 @@ export const boardCustomFieldCreate = new Elysia()
             }
 
             try {
+                const maxOrderField = await prisma.boardCustomField.findFirst({
+                    where: {
+                        boardId: board.id
+                    },
+                    orderBy: {
+                        order: 'desc'
+                    }
+                })
+
+                const nextOrder = (maxOrderField?.order ?? 0) + 1
+
                 const field = await prisma.boardCustomField.create({
                     data: {
                         boardId: board.id,
                         name,
                         type,
                         showOnCard: showOnCard ?? false,
-                        options: options ?? []
+                        options: options ?? [],
+                        order: nextOrder
                     }
                 })
 
