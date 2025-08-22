@@ -426,14 +426,15 @@ model CardComment {
 }
 
 model BoardCustomField {
-  id      String                 @id @default(cuid(2))
-  boardId String
-  name    String                 @db.VarChar(100)
-  type    String                 @db.VarChar(30)
-  options Json?
-  order   Int                    @default(0)
-  board   Board                  @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  values  CardCustomFieldValue[]
+  id         String                 @id @default(cuid(2))
+  boardId    String
+  name       String                 @db.VarChar(100)
+  type       String                 @db.VarChar(30)
+  options    Json?
+  order      Int                    @default(0)
+  showOnCard Boolean                @default(false)
+  board      Board                  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  values     CardCustomFieldValue[]
 
   @@unique([boardId, name])
   @@index([boardId])
@@ -443,7 +444,10 @@ model CardCustomFieldValue {
   id                 String           @id @default(cuid(2))
   cardId             String
   boardCustomFieldId String
-  value              String           @db.VarChar(255)
+  value              Json
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
   card               Card             @relation(fields: [cardId], references: [id], onDelete: Cascade)
   boardCustomField   BoardCustomField @relation(fields: [boardCustomFieldId], references: [id], onDelete: Cascade)
 

@@ -6,6 +6,7 @@ import {
     boardArchive,
     boardCreate,
     boardCreateLabel,
+    boardCustomFieldCreate,
     boardDelete,
     boardDetail,
     boardFavorite,
@@ -38,3 +39,4 @@ export const boardController = new Elysia({
     .use(boardUnfavorite)
     .use(boardCreateLabel)
     .use(boardUpdateLabel)
+    .use(boardCustomFieldCreate)
