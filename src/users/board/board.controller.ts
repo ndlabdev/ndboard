@@ -7,6 +7,7 @@ import {
     boardCreate,
     boardCreateLabel,
     boardCustomFieldCreate,
+    boardCustomFieldDelete,
     boardCustomFieldList,
     boardDelete,
     boardDetail,
@@ -42,3 +43,4 @@ export const boardController = new Elysia({
     .use(boardUpdateLabel)
     .use(boardCustomFieldCreate)
     .use(boardCustomFieldList)
+    .use(boardCustomFieldDelete)
