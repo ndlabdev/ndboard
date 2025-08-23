@@ -259,12 +259,116 @@ export const cardUpdate = new Elysia()
 
                     // Custom fields
                     if (Array.isArray(customFields)) {
-                        activities.push({
-                            boardId: card.list.boardId,
-                            userId,
-                            action: 'update_custom_fields',
-                            detail: 'Updated custom fields'
+                        const oldCustoms = await tx.cardCustomFieldValue.findMany({
+                            where: {
+                                cardId
+                            },
+                            include: {
+                                boardCustomField: true
+                            }
                         })
+
+                        const formatValue = (
+                            fieldType: string,
+                            raw: any,
+                            options?: { id: string; label: string; color: string }[]
+                        ): string => {
+                            if (!raw) return ''
+
+                            switch (fieldType) {
+                                case 'date': {
+                                    if (!raw) return ''
+                                    const d = new Date(raw)
+                                    if (isNaN(d.getTime())) return raw
+
+                                    const day = d.getDate().toString().padStart(2, '0')
+                                    const monthNames = [
+                                        'Jan',
+                                        'Feb',
+                                        'Mar',
+                                        'Apr',
+                                        'May',
+                                        'Jun',
+                                        'Jul',
+                                        'Aug',
+                                        'Sep',
+                                        'Oct',
+                                        'Nov',
+                                        'Dec'
+                                    ]
+                                    const month = monthNames[d.getMonth()]
+                                    const year = d.getFullYear()
+
+                                    const hh = d.getHours().toString().padStart(2, '0')
+                                    const mm = d.getMinutes().toString().padStart(2, '0')
+
+                                    return `${day} ${month} ${year} ${hh}:${mm}`
+                                }
+                                case 'checkbox':
+                                    return raw === 'true' ? 'Yes' : 'No'
+                                case 'select': {
+                                    const opt = options?.find((o) => o.id === raw)
+                                    return opt ? opt.label : raw
+                                }
+                                default:
+                                    return raw
+                            }
+                        }
+
+                        for (const cf of customFields) {
+                            const old = oldCustoms.find(
+                                (o) => o.boardCustomFieldId === cf.boardCustomFieldId
+                            )
+
+                            const fieldMeta = old?.boardCustomField
+                            if (!fieldMeta) continue
+
+                            const fieldName = fieldMeta.name
+                            const oldDisplay = old ? formatValue(fieldMeta.type, old.value, fieldMeta.options as any) : ''
+                            const newDisplay = formatValue(fieldMeta.type, cf.value, fieldMeta.options as any)
+
+                            if (!old && cf.value) {
+                                activities.push({
+                                    boardId: card.list.boardId,
+                                    userId,
+                                    action: 'add_custom_field_value',
+                                    detail: `Set custom field "${fieldName}" to "${newDisplay}"`
+                                })
+                            } else if (old && cf.value !== old.value) {
+                                if (!cf.value) {
+                                    activities.push({
+                                        boardId: card.list.boardId,
+                                        userId,
+                                        action: 'remove_custom_field_value',
+                                        detail: `Removed value of custom field "${fieldName}"`
+                                    })
+                                } else {
+                                    activities.push({
+                                        boardId: card.list.boardId,
+                                        userId,
+                                        action: 'update_custom_field_value',
+                                        detail: `Changed custom field "${fieldName}" from "${oldDisplay}" to "${newDisplay}"`
+                                    })
+                                }
+                            }
+
+                            await tx.cardCustomFieldValue.upsert({
+                                where: {
+                                    cardId_boardCustomFieldId: {
+                                        cardId,
+                                        boardCustomFieldId: cf.boardCustomFieldId
+                                    }
+                                },
+                                update: {
+                                    value: cf.value
+                                },
+                                create: {
+                                    cardId,
+                                    boardCustomFieldId: cf.boardCustomFieldId,
+                                    value: cf.value
+                                }
+                            })
+                        }
                     }
 
                     // Bulk insert all logs
@@ -321,19 +425,22 @@ export const cardUpdate = new Elysia()
 
                     // Overwrite customFields if provided
                     if (Array.isArray(customFields)) {
-                        await tx.cardCustomFieldValue.deleteMany({
-                            where: {
-                                cardId
-                            }
-                        })
-                        if (customFields.length > 0) {
-                            await tx.cardCustomFieldValue.createMany({
-                                data: customFields.map((cf: { boardCustomFieldId: string; value: string }) => ({
+                        for (const cf of customFields) {
+                            await tx.cardCustomFieldValue.upsert({
+                                where: {
+                                    cardId_boardCustomFieldId: {
+                                        cardId,
+                                        boardCustomFieldId: cf.boardCustomFieldId
+                                    }
+                                },
+                                update: {
+                                    value: cf.value
+                                },
+                                create: {
                                     cardId,
                                     boardCustomFieldId: cf.boardCustomFieldId,
                                     value: cf.value
-                                })),
-                                skipDuplicates: true
+                                }
                             })
                         }
                     }
@@ -378,6 +485,11 @@ export const cardUpdate = new Elysia()
                                     createdAt: 'desc'
                                 }
                             },
+                            customFieldValues: {
+                                include: {
+                                    boardCustomField: true
+                                }
+                            },
                             activities: {
                                 include: {
                                     user: {
@@ -417,6 +529,11 @@ export const cardUpdate = new Elysia()
                             detail: a.detail,
                             createdAt: a.createdAt,
                             user: a.user
+                        })),
+                        customFields: fullCard?.customFieldValues.map((cf) => ({
+                            id: cf.boardCustomField.id,
+                            name: cf.boardCustomField.name,
+                            value: cf.value
                         }))
                     }
                 })

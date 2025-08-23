@@ -72,6 +72,19 @@ export const boardDetail = new Elysia()
                                 }
                             }
                         }
+                    },
+                    customFields: {
+                        orderBy: {
+                            order: 'asc'
+                        },
+                        select: {
+                            id: true,
+                            name: true,
+                            type: true,
+                            showOnCard: true,
+                            options: true,
+                            order: true
+                        }
                     }
                 }
             })
@@ -104,7 +117,7 @@ export const boardDetail = new Elysia()
             })
 
             // Prepare response data
-            const { owner, workspace, labels, lists, members, ...boardData } = board
+            const { owner, workspace, labels, lists, members, customFields, ...boardData } = board
 
             return status('OK', {
                 data: {
@@ -123,6 +136,7 @@ export const boardDetail = new Elysia()
                         avatarUrl: m.user.avatarUrl,
                         role: m.role
                     })),
+                    customFields,
                     isFavorite: !!boardFavorite
                 }
             })
