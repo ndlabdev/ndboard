@@ -121,42 +121,6 @@ export const cardGetByList = new Elysia()
                                 include: {
                                     boardCustomField: true
                                 }
-                            },
-                            comments: {
-                                orderBy: {
-                                    createdAt: 'desc'
-                                },
-                                select: {
-                                    id: true,
-                                    content: true,
-                                    createdAt: true,
-                                    user: {
-                                        select: {
-                                            id: true,
-                                            name: true,
-                                            email: true,
-                                            avatarUrl: true
-                                        }
-                                    }
-                                }
-                            },
-                            activities: {
-                                orderBy: {
-                                    createdAt: 'desc'
-                                },
-                                select: {
-                                    id: true,
-                                    action: true,
-                                    detail: true,
-                                    createdAt: true,
-                                    user: {
-                                        select: {
-                                            id: true,
-                                            name: true,
-                                            avatarUrl: true
-                                        }
-                                    }
-                                }
                             }
                         }
                     }),
@@ -205,19 +169,6 @@ export const cardGetByList = new Elysia()
                                     id: cf.boardCustomField.id,
                                     name: cf.boardCustomField.name,
                                     value: cf.value
-                                })),
-                                comments: card.comments.map((c) => ({
-                                    id: c.id,
-                                    content: c.content,
-                                    createdAt: c.createdAt,
-                                    user: c.user
-                                })),
-                                activities: card.activities.map((act) => ({
-                                    id: act.id,
-                                    action: act.action,
-                                    detail: act.detail,
-                                    createdAt: act.createdAt,
-                                    user: act.user
                                 })),
                                 meta
                             }

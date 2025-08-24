@@ -50,16 +50,40 @@ export const cardDetail = new Elysia()
                             user: true
                         }
                     },
-                    attachments: true,
                     checklists: {
-                        include: {
+                        select: {
+                            id: true,
+                            title: true,
+                            isShow: true,
                             items: {
-                                include: {
-                                    completedBy: {
-                                        include: {
-                                            user: true
-                                        }
-                                    }
+                                select: {
+                                    id: true,
+                                    isChecked: true,
+                                    name: true
+                                }
+                            }
+                        }
+                    },
+                    attachments: true,
+                    customFieldValues: {
+                        include: {
+                            boardCustomField: true
+                        }
+                    },
+                    comments: {
+                        orderBy: {
+                            createdAt: 'desc'
+                        },
+                        select: {
+                            id: true,
+                            content: true,
+                            createdAt: true,
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    email: true,
+                                    avatarUrl: true
                                 }
                             }
                         }
@@ -68,19 +92,18 @@ export const cardDetail = new Elysia()
                         orderBy: {
                             createdAt: 'desc'
                         },
-                        take: 10
-                    },
-                    comments: {
-                        include: {
-                            user: true
-                        },
-                        orderBy: {
-                            createdAt: 'desc'
-                        }
-                    },
-                    customFieldValues: {
-                        include: {
-                            boardCustomField: true
+                        select: {
+                            id: true,
+                            action: true,
+                            detail: true,
+                            createdAt: true,
+                            user: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    avatarUrl: true
+                                }
+                            }
                         }
                     }
                 }
@@ -108,59 +131,41 @@ export const cardDetail = new Elysia()
                     id: card.id,
                     name: card.name,
                     description: card.description,
+                    listId: card.listId,
+                    startDate: card.startDate,
                     dueDate: card.dueDate,
                     order: card.order,
                     isArchived: card.isArchived,
                     createdAt: card.createdAt,
                     updatedAt: card.updatedAt,
-                    list: {
-                        id: card.list.id,
-                        name: card.list.name
-                    },
-                    board: {
-                        id: card.list.board.id,
-                        name: card.list.board.name,
-                        workspaceId: card.list.board.workspace.id
-                    },
-                    labels: card.labels.map((cl) => cl.label),
+                    labels: card.labels.map((l) => l.label),
                     assignees: card.assignees.map((a) => ({
                         id: a.user.id,
                         name: a.user.name,
                         email: a.user.email,
                         avatarUrl: a.user.avatarUrl
                     })),
+                    checklists: card.checklists,
+                    checklistCount: card.checklists.length,
                     attachments: card.attachments,
-                    checklists: card.checklists.map((chk) => ({
-                        id: chk.id,
-                        title: chk.title,
-                        order: chk.order,
-                        items: chk.items.map((item) => ({
-                            id: item.id,
-                            name: item.name,
-                            isChecked: item.isChecked,
-                            order: item.order,
-                            completedBy: item.completedBy.map((cb) => ({
-                                id: cb.user.id,
-                                name: cb.user.name
-                            }))
-                        }))
-                    })),
-                    comments: card.comments.map((cm) => ({
-                        id: cm.id,
-                        content: cm.content,
-                        createdAt: cm.createdAt,
-                        user: {
-                            id: cm.user.id,
-                            name: cm.user.name,
-                            avatarUrl: cm.user.avatarUrl
-                        }
-                    })),
                     customFields: card.customFieldValues.map((cf) => ({
                         id: cf.boardCustomField.id,
                         name: cf.boardCustomField.name,
                         value: cf.value
                     })),
-                    activities: card.activities
+                    comments: card.comments.map((c) => ({
+                        id: c.id,
+                        content: c.content,
+                        createdAt: c.createdAt,
+                        user: c.user
+                    })),
+                    activities: card.activities.map((act) => ({
+                        id: act.id,
+                        action: act.action,
+                        detail: act.detail,
+                        createdAt: act.createdAt,
+                        user: act.user
+                    }))
                 }
             })
         },
