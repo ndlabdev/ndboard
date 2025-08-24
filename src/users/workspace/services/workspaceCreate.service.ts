@@ -12,15 +12,18 @@ import prisma from '@db'
 // ** Constants Imports
 import { WORKSPACE_ROLES } from '@constants'
 import { ERROR_CODES } from '@constants/errorCodes'
+import { CACHE_KEYS } from '@src/constants/cacheKeys'
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
+import { redisPlugin } from '@src/plugins/redis'
 
 export const workspaceCreate = new Elysia()
     .use(authUserPlugin)
+    .use(redisPlugin)
     .post(
         '/',
-        async({ status, body, user }) => {
+        async({ status, body, user, redis }) => {
             const { name, description } = body
 
             // Check for existing workspace with same name and ownerId
@@ -30,8 +33,12 @@ export const workspaceCreate = new Elysia()
                 where: {
                     ownerId: user.id,
                     OR: [
-                        { name },
-                        { slug: workspaceSlug }
+                        {
+                            name
+                        },
+                        {
+                            slug: workspaceSlug
+                        }
                     ]
                 }
             })
@@ -41,6 +48,9 @@ export const workspaceCreate = new Elysia()
                     message: 'Workspace name already exists'
                 })
             }
+
+            // Build cache key
+            const cacheKey = CACHE_KEYS.WORKSPACE_LIST(user.id)
 
             try {
                 const workspace = await prisma.workspace.create({
@@ -60,6 +70,10 @@ export const workspaceCreate = new Elysia()
                         members: true
                     }
                 })
+
+                // ❌ Invalidate Redis cache for this user's workspace list
+                const cacheKey = CACHE_KEYS.WORKSPACE_LIST(user.id)
+                await redis.del(cacheKey)
 
                 return status('Created', {
                     data: workspace

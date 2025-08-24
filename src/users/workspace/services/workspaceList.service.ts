@@ -11,18 +11,21 @@ import { Prisma } from '@prisma/client'
 import {
     PAGE, WORKSPACE_ROLES
 } from '@constants'
+import { CACHE_KEYS } from '@src/constants/cacheKeys'
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
+import { redisPlugin } from '@src/plugins/redis'
 
 // ** Types Imports
 import { paginationType } from '@src/types/core.type'
 
 export const workspaceList = new Elysia()
     .use(authUserPlugin)
+    .use(redisPlugin)
     .get(
         '/',
-        async({ status, query, user }) => {
+        async({ status, query, user, redis }) => {
             const page = Number(query.page) || PAGE.CURRENT
             const pageSize = Number(query.pageSize) || PAGE.SIZE
 
@@ -41,7 +44,16 @@ export const workspaceList = new Elysia()
                 }
             }
 
+            // Build cache key
+            const cacheKey = CACHE_KEYS.WORKSPACE_LIST(user.id)
+
             try {
+                // Try get from Redis
+                const cached = await redis.get(cacheKey)
+                if (cached) {
+                    return status('OK', JSON.parse(cached))
+                }
+
                 const [data, total] = await Promise.all([
                     prisma.workspaceMember.findMany({
                         take,
@@ -67,10 +79,9 @@ export const workspaceList = new Elysia()
                     })
                 ])
 
-                return status('OK', {
+                const result = {
                     data: data.map((member) => {
                         const { workspace } = member
-
                         return {
                             id: workspace.id,
                             name: workspace.name,
@@ -91,7 +102,12 @@ export const workspaceList = new Elysia()
                         pageSize,
                         totalPages: Math.ceil(total / pageSize)
                     }
-                })
+                }
+
+                // 3. Save to Redis
+                await redis.set(cacheKey, JSON.stringify(result))
+
+                return status('OK', result)
             } catch(error) {
                 return status('Internal Server Error', error)
             }

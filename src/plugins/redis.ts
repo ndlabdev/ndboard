@@ -6,7 +6,6 @@ import Redis from 'ioredis'
 
 class RedisClient {
     private redisClient: Redis
-    private expiresAt = 60 * 60
 
     constructor(_connectionString?: string) {
         this.redisClient = _connectionString ? new Redis(_connectionString, {
@@ -30,8 +29,8 @@ class RedisClient {
         return this.redisClient
     }
 
-    async set(key: string, value: string, expiresAt = this.expiresAt) {
-        return this.redisClient.set(key, value, 'EX', expiresAt)
+    async set(key: string, value: string) {
+        return this.redisClient.set(key, value)
     }
 
     async get(key: string) {

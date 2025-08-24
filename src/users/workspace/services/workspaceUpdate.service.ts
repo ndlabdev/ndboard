@@ -11,15 +11,18 @@ import prisma from '@db'
 
 // ** Constants Imports
 import { ERROR_CODES } from '@constants/errorCodes'
+import { CACHE_KEYS } from '@src/constants/cacheKeys'
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
+import { redisPlugin } from '@src/plugins/redis'
 
 export const workspaceUpdate = new Elysia()
     .use(authUserPlugin)
+    .use(redisPlugin)
     .patch(
         '/:workspaceId',
-        async({ status, params, body, user }) => {
+        async({ status, params, body, user, redis }) => {
             const { name, slug: wsSlug, imageUrl, description } = body
             const workspaceId = params.workspaceId
             const userId = user.id
@@ -82,6 +85,32 @@ export const workspaceUpdate = new Elysia()
                         description
                     }
                 })
+
+                const cacheKey = CACHE_KEYS.WORKSPACE_LIST(userId)
+                const cached = await redis.get(cacheKey)
+
+                if (cached) {
+                    let workspaces = JSON.parse(cached)
+
+                    // Update the matching workspace
+                    if (workspaces.data && Array.isArray(workspaces.data)) {
+                        workspaces.data = workspaces?.data?.map((w: {
+                            id: string;
+                        }) =>
+                            w.id === workspaceId
+                                ? {
+                                    ...w,
+                                    name: updated.name,
+                                    slug: updated.slug,
+                                    imageUrl: updated.imageUrl,
+                                    description: updated.description,
+                                    updatedAt: updated.updatedAt
+                                }
+                                : w)
+
+                        await redis.set(cacheKey, JSON.stringify(workspaces))
+                    }
+                }
 
                 return status('OK', {
                     data: updated
