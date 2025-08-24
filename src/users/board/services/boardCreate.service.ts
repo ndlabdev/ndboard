@@ -17,9 +17,11 @@ import {
     DEFAULT_CARDS
 } from '@constants'
 import { ERROR_CODES } from '@constants/errorCodes'
+import { CACHE_KEYS } from '@src/constants/cacheKeys'
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
+import { redisPlugin } from '@src/plugins/redis'
 
 // Helper to generate unique shortLink (using cuid2, take 8 chars)
 async function generateUniqueShortLink(): Promise<string> {
@@ -39,9 +41,10 @@ async function generateUniqueShortLink(): Promise<string> {
 
 export const boardCreate = new Elysia()
     .use(authUserPlugin)
+    .use(redisPlugin)
     .post(
         '/',
-        async({ body, status, user }) => {
+        async({ body, status, user, redis }) => {
             const { name, description, workspaceId, visibility, coverImageUrl } = body
             const userId = user.id
 
@@ -172,6 +175,21 @@ export const boardCreate = new Elysia()
 
                     return board
                 })
+
+                const cacheKey = CACHE_KEYS.BOARD_LIST(workspaceId)
+                const cached = await redis.get(cacheKey)
+
+                if (cached) {
+                    let boards = JSON.parse(cached)
+
+                    const newBoardWithFlags = {
+                        ...newBoard,
+                        isFavorite: false
+                    }
+
+                    boards = [newBoardWithFlags, ...boards]
+                    await redis.set(cacheKey, JSON.stringify(boards))
+                }
 
                 return status('Created', {
                     data: newBoard

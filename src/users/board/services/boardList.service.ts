@@ -5,27 +5,25 @@ import {
 
 // ** Prisma Imports
 import prisma from '@db'
-import { Prisma } from '@prisma/client'
 
 // ** Constants Imports
-import { PAGE } from '@constants'
 import { ERROR_CODES } from '@constants/errorCodes'
+import { CACHE_KEYS } from '@src/constants/cacheKeys'
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
-
-// ** Types Imports
-import { paginationType } from '@src/types/core.type'
+import { redisPlugin } from '@src/plugins/redis'
 
 export const boardList = new Elysia()
     .use(authUserPlugin)
+    .use(redisPlugin)
     .get(
         '/',
-        async({ query, status, user }) => {
+        async({ query, status, user, redis }) => {
             const { workspaceId } = query
             const userId = user.id
 
-            // Check if workspace exists and is active
+            // 1. Check workspace & membership
             const workspace = await prisma.workspace.findUnique({
                 where: {
                     id: workspaceId
@@ -41,7 +39,6 @@ export const boardList = new Elysia()
                 })
             }
 
-            // Check if user is a member of the workspace
             const isMember = workspace.members.some((m) => m.userId === userId)
             if (!isMember) {
                 return status('Forbidden', {
@@ -50,79 +47,63 @@ export const boardList = new Elysia()
                 })
             }
 
-            const page = Number(query.page) || PAGE.CURRENT
-            const pageSize = Number(query.pageSize) || PAGE.SIZE
+            const cacheKey = CACHE_KEYS.BOARD_LIST(workspaceId)
 
-            const skip = ((page - 1) * pageSize) || undefined
-            const take = pageSize || undefined
-
-            let boardIds: string[] | undefined
-
-            if (query.isStarred) {
-                const favorites = await prisma.boardFavorite.findMany({
-                    where: {
-                        userId,
-                        board: {
-                            workspaceId
+            try {
+                // 2. Try get from Redis
+                const cached = await redis.get(cacheKey)
+                if (cached) {
+                    const boards = JSON.parse(cached)
+                    return status('OK', {
+                        data: boards,
+                        meta: {
+                            total: boards.length,
+                            page: 1,
+                            pageSize: 100,
+                            totalPages: 1
                         }
+                    })
+                }
+
+                // 3. Cache miss → query DB
+                const boardsFromDb = await prisma.board.findMany({
+                    where: {
+                        workspaceId,
+                        isArchived: false
                     },
-                    select: {
-                        boardId: true
+                    orderBy: {
+                        createdAt: 'desc'
                     }
                 })
 
-                boardIds = favorites.map((f) => f.boardId)
-            }
-
-            const search: Prisma.BoardWhereInput = {
-                workspaceId,
-                isArchived: false,
-                ...(query.isStarred ? {
-                    id: {
-                        in: boardIds?.length ? boardIds : ['__empty__']
-                    }
-                } : {})
-            }
-
-            try {
-                const [data, total] = await Promise.all([
-                    prisma.board.findMany({
-                        take,
-                        skip,
-                        where: search,
-                        orderBy: {
-                            createdAt: 'desc'
-                        }
-                    }),
-                    prisma.board.count({
-                        where: search
-                    })
-                ])
-
-                const boardIds = data.map((b) => b.id)
                 const favorites = await prisma.boardFavorite.findMany({
                     where: {
                         userId,
                         boardId: {
-                            in: boardIds
+                            in: boardsFromDb.map((b) => b.id)
                         }
                     },
                     select: {
                         boardId: true
                     }
                 })
-                const favoriteBoardIds = new Set(favorites.map((f) => f.boardId))
+                const favSet = new Set(favorites.map((f) => f.boardId))
+
+                const result = boardsFromDb.map((board) => ({
+                    ...board,
+                    isFavorite: favSet.has(board.id)
+                }))
+
+                // 4. Save to Redis
+                await redis.set(cacheKey, JSON.stringify(result))
 
                 return status('OK', {
-                    data: data.map((board) => ({
-                        ...board,
-                        isFavorite: favoriteBoardIds.has(board.id)
-                    })),
+                    data: result,
                     meta: {
-                        total,
-                        page,
-                        pageSize,
-                        totalPages: Math.ceil(total / pageSize)
+                        total: result.length,
+                        page: 1,
+                        pageSize: 100,
+                        totalPages: 1
                     }
                 })
             } catch(error) {
@@ -131,14 +112,12 @@ export const boardList = new Elysia()
         },
         {
             query: t.Object({
-                ...paginationType,
-                workspaceId: t.String(),
-                isStarred: t.Optional(t.Boolean())
+                workspaceId: t.String()
             }),
             detail: {
                 tags: ['Board'],
-                summary: 'Get list of boards in workspace',
-                description: 'Retrieve all boards within a specific workspace. User must be a member of the workspace. Supports pagination.'
+                summary: 'Get board list in workspace (with Redis cache)',
+                description: 'Return all boards in a workspace with { data, meta }. Supports favorites. Cached in Redis.'
             }
         }
     )

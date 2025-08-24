@@ -9,5 +9,12 @@ export const CACHE_KEYS = {
         `workspace:list:${userId}:${query ? JSON.stringify(query) : 'default'}`,
 
     WORKSPACE_DETAIL: (workspaceId: string) =>
-        `workspace:detail:${workspaceId}`
+        `workspace:detail:${workspaceId}`,
+
+    // Board
+    BOARD_LIST: (workspaceId: string) =>
+        `board:list:${workspaceId}`,
+
+    BOARD_DETAIL: (boardId: string) =>
+        `board:detail:${boardId}`
 } as const
