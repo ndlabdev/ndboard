@@ -8,15 +8,18 @@ import prisma from '@db'
 
 // ** Constants Imports
 import { ERROR_CODES } from '@constants/errorCodes'
+import { CACHE_KEYS } from '@src/constants/cacheKeys'
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
+import { redisPlugin } from '@src/plugins/redis'
 
 export const boardFavorite = new Elysia()
     .use(authUserPlugin)
+    .use(redisPlugin)
     .post(
         '/:shortLink/favorite',
-        async({ params, status, user }) => {
+        async({ params, status, user, redis }) => {
             const { shortLink } = params
             const userId = user.id
 
@@ -82,6 +85,19 @@ export const boardFavorite = new Elysia()
                         detail: `Favorited board "${board.name}"`
                     }
                 })
+
+                // ✅ Update Redis cache
+                const cacheKey = CACHE_KEYS.BOARD_LIST(board.workspaceId)
+                const cached = await redis.get(cacheKey)
+
+                if (cached) {
+                    let boards = JSON.parse(cached)
+                    boards = boards.map((b: { id: string }) =>
+                        b.id === board.id ? {
+                            ...b, isFavorite: true
+                        } : b)
+                    await redis.set(cacheKey, JSON.stringify(boards))
+                }
 
                 return status('Created', {
                     data: {
