@@ -9,15 +9,18 @@ import prisma from '@db'
 // ** Constants Imports
 import { BOARD_VISIBILITY } from '@constants'
 import { ERROR_CODES } from '@constants/errorCodes'
+import { CACHE_KEYS } from '@src/constants/cacheKeys'
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
+import { redisPlugin } from '@src/plugins/redis'
 
 export const boardUpdate = new Elysia()
     .use(authUserPlugin)
+    .use(redisPlugin)
     .patch(
         '/:shortLink',
-        async({ status, params, body, user }) => {
+        async({ status, params, body, user, redis }) => {
             const { name, description, visibility, coverImageUrl } = body
             const { shortLink } = params
             const userId = user.id
@@ -75,6 +78,21 @@ export const boardUpdate = new Elysia()
                         updatedById: userId
                     }
                 })
+
+                // 5. Update Redis cache in-place
+                const cacheKey = CACHE_KEYS.BOARD_LIST(board.workspaceId)
+                const cached = await redis.get(cacheKey)
+
+                if (cached) {
+                    let boards = JSON.parse(cached) as Array<Record<string, unknown>>
+                    boards = boards.map((b) =>
+                        b.id === updated.id
+                            ? {
+                                ...b, ...updated
+                            }
+                            : b)
+                    await redis.set(cacheKey, JSON.stringify(boards))
+                }
 
                 return status('OK', {
                     data: updated
