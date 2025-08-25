@@ -191,6 +191,7 @@ model Board {
   createdById   String
   updatedById   String
   visibility    String
+  type          String?            @default("board")
   coverImageUrl String?            @db.VarChar(255)
   isTemplate    Boolean            @default(false)
   isArchived    Boolean            @default(false)
