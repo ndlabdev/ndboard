@@ -8,6 +8,7 @@ import { listController } from './list/list.controller'
 import { workspaceController } from './workspace/workspace.controller'
 import { cardController } from './card/card.controller'
 import { dashboardController } from './dashboard/dashboard.controller'
+import { calendarController } from './calendar/calendar.controller'
 
 export const users = new Elysia({
     prefix: '/api/users'
@@ -18,3 +19,4 @@ export const users = new Elysia({
     .use(listController)
     .use(cardController)
     .use(dashboardController)
+    .use(calendarController)
