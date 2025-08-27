@@ -460,6 +460,7 @@ export const cardUpdate = new Elysia()
                             id: cardId
                         },
                         include: {
+                            list: true,
                             labels: {
                                 include: {
                                     label: true
@@ -510,6 +511,8 @@ export const cardUpdate = new Elysia()
 
                     return {
                         ...fullCard,
+                        listId: card.listId,
+                        listName: card.list?.name ?? 'Unknown',
                         labels: fullCard?.labels.map((l) => l.label),
                         assignees: fullCard?.assignees.map((l) => ({
                             id: l.user.id,
