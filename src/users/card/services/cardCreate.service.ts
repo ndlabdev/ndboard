@@ -17,7 +17,7 @@ export const cardCreate = new Elysia()
     .post(
         '/',
         async({ body, status, user }) => {
-            const { listId, name, description, dueDate, labels, assignees, customFields, index } = body
+            const { listId, name, description, startDate, dueDate, labels, assignees, customFields, index } = body
             const userId = user.id
 
             // Find list and check permissions
@@ -88,7 +88,16 @@ export const cardCreate = new Elysia()
                             boardId: list.boardId,
                             name,
                             description,
-                            dueDate: dueDate ? new Date(dueDate) : undefined,
+                            startDate: startDate === null
+                                ? null
+                                : startDate
+                                    ? new Date(startDate)
+                                    : undefined,
+                            dueDate: dueDate === null
+                                ? null
+                                : dueDate
+                                    ? new Date(dueDate)
+                                    : undefined,
                             order: 0,
                             createdById: userId,
                             updatedById: userId
@@ -163,6 +172,7 @@ export const cardCreate = new Elysia()
                         id: result.id
                     },
                     include: {
+                        list: true,
                         labels: {
                             include: {
                                 label: true
@@ -212,7 +222,10 @@ export const cardCreate = new Elysia()
                         name: card.name,
                         description: card.description,
                         listId: card.listId,
+                        listName: card.list?.name ?? 'Unknown',
+                        boardId: card.boardId,
                         order: card.order,
+                        startDate: card.startDate,
                         dueDate: card.dueDate,
                         isArchived: card.isArchived,
                         labels: card.labels.map((l) => ({
@@ -255,6 +268,9 @@ export const cardCreate = new Elysia()
                     minLength: 1
                 }),
                 description: t.Optional(t.String()),
+                startDate: t.Optional(t.Nullable(t.String({
+                    format: 'date-time'
+                }))),
                 dueDate: t.Optional(t.String({
                     format: 'date-time'
                 })),
