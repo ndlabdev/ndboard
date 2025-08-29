@@ -62,6 +62,18 @@ export const workspaceList = new Elysia()
                         include: {
                             workspace: {
                                 include: {
+                                    members: {
+                                        include: {
+                                            user: {
+                                                select: {
+                                                    id: true,
+                                                    name: true,
+                                                    email: true,
+                                                    avatarUrl: true
+                                                }
+                                            }
+                                        }
+                                    },
                                     _count: {
                                         select: {
                                             members: true
@@ -93,7 +105,15 @@ export const workspaceList = new Elysia()
                             ownerId: workspace.ownerId,
                             createdAt: workspace.createdAt,
                             updatedAt: workspace.updatedAt,
-                            memberCount: workspace._count?.members ?? 0
+                            memberCount: workspace._count?.members ?? 0,
+                            members: workspace.members.map((m) => ({
+                                id: m.user.id,
+                                name: m.user.name,
+                                email: m.user.email,
+                                avatarUrl: m.user.avatarUrl,
+                                role: m.role,
+                                joinedAt: m.joinedAt
+                            }))
                         }
                     }),
                     meta: {
