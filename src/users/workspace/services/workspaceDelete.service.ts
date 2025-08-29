@@ -67,7 +67,7 @@ export const workspaceDelete = new Elysia()
 
                 // Delete Redis
                 await Promise.all([
-                    redis.del(CACHE_KEYS.WORKSPACE_LIST(userId)), redis.del(CACHE_KEYS.WORKSPACE_DETAIL(workspaceId)), redis.del(CACHE_KEYS.BOARD_LIST(workspaceId)), ...boards.map((b) => redis.del(CACHE_KEYS.BOARD_DETAIL(b.id)))
+                    redis.del(CACHE_KEYS.WORKSPACE_LIST(userId)), redis.del(CACHE_KEYS.WORKSPACE_DETAIL(userId, workspaceId)), redis.del(CACHE_KEYS.BOARD_LIST(userId, workspaceId)), ...boards.map((b) => redis.del(CACHE_KEYS.BOARD_DETAIL(userId, b.id)))
                 ])
 
                 return status('OK', {

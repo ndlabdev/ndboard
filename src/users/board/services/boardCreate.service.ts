@@ -176,7 +176,7 @@ export const boardCreate = new Elysia()
                     return board
                 })
 
-                const cacheKey = CACHE_KEYS.BOARD_LIST(workspaceId)
+                const cacheKey = CACHE_KEYS.BOARD_LIST(userId, workspaceId)
                 const cached = await redis.get(cacheKey)
 
                 if (cached) {

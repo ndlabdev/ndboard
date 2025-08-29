@@ -87,7 +87,7 @@ export const boardFavorite = new Elysia()
                 })
 
                 // ✅ Update Redis cache
-                const cacheKey = CACHE_KEYS.BOARD_LIST(board.workspaceId)
+                const cacheKey = CACHE_KEYS.BOARD_LIST(userId, board.workspaceId)
                 const cached = await redis.get(cacheKey)
 
                 if (cached) {

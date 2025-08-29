@@ -47,7 +47,7 @@ export const boardList = new Elysia()
                 })
             }
 
-            const cacheKey = CACHE_KEYS.BOARD_LIST(workspaceId)
+            const cacheKey = CACHE_KEYS.BOARD_LIST(userId, workspaceId)
 
             try {
                 // 2. Try get from Redis
