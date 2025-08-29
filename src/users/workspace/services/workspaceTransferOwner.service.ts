@@ -15,7 +15,7 @@ import { authUserPlugin } from '@src/users/plugins/auth'
 
 export const workspaceTransferOwner = new Elysia()
     .use(authUserPlugin)
-    .delete(
+    .patch(
         '/:workspaceId/transfer-owner',
         async({ status, body, params, user }) => {
             const { workspaceId } = params
