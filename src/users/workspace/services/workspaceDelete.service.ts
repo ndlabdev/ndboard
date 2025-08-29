@@ -6,15 +6,18 @@ import prisma from '@db'
 
 // ** Constants Imports
 import { ERROR_CODES } from '@constants/errorCodes'
+import { CACHE_KEYS } from '@src/constants/cacheKeys'
 
 // ** Plugins Imports
 import { authUserPlugin } from '@src/users/plugins/auth'
+import { redisPlugin } from '@src/plugins/redis'
 
 export const workspaceDelete = new Elysia()
     .use(authUserPlugin)
+    .use(redisPlugin)
     .delete(
         '/:workspaceId',
-        async({ status, params, user }) => {
+        async({ status, params, user, redis }) => {
             const workspaceId = params.workspaceId
             const userId = user.id
 
@@ -38,14 +41,41 @@ export const workspaceDelete = new Elysia()
             }
 
             try {
-                const deleted = await prisma.workspace.delete({
+                await prisma.$transaction([
+                    prisma.workspace.delete({
+                        where: {
+                            id: workspaceId
+                        }
+                    }),
+                    prisma.auditLog.create({
+                        data: {
+                            userId,
+                            action: 'WORKSPACE_DELETE',
+                            description: `User ${user.name} (${user.email}) deleted workspace "${workspace.name}" (${workspace.id}, slug: ${workspace.slug})`
+                        }
+                    })
+                ])
+
+                const boards = await prisma.board.findMany({
                     where: {
-                        id: workspaceId
+                        workspaceId
+                    },
+                    select: {
+                        id: true
                     }
                 })
 
+                // Delete Redis
+                await Promise.all([
+                    redis.del(CACHE_KEYS.WORKSPACE_LIST(userId)), redis.del(CACHE_KEYS.WORKSPACE_DETAIL(workspaceId)), redis.del(CACHE_KEYS.BOARD_LIST(workspaceId)), ...boards.map((b) => redis.del(CACHE_KEYS.BOARD_DETAIL(b.id)))
+                ])
+
                 return status('OK', {
-                    data: deleted
+                    data: {
+                        workspaceId,
+                        name: workspace.name
+                    },
+                    message: 'Workspace deleted successfully'
                 })
             } catch(error) {
                 return status('Internal Server Error', error)
